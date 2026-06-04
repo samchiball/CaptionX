@@ -30,8 +30,6 @@ jobs:
             pack: pack:win
           - os: macos-14 # Apple Silicon (arm64) → dmg
             pack: pack:mac
-          - os: macos-13 # Intel (x64) → dmg, 정렬은 whisper 폴백
-            pack: pack:mac
           - os: ubuntu-latest # linux x64 → AppImage
             pack: pack:linux
     runs-on: ${{ matrix.os }}

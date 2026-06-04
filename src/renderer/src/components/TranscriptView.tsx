@@ -140,20 +140,22 @@ export function TranscriptView({ result, filePath }: Props): React.JSX.Element {
       <div className="transcript__meta">
         {t('transcript.language', { language: result.language })}
       </div>
-      {result.segments.map((seg, i) => {
-        const isActive = i === activeSegment
-        return (
-          <SegmentRow
-            key={segmentKey(seg)}
-            seg={seg}
-            isActive={isActive}
-            activeWord={isActive ? activeWord : -1}
-            onSeek={seekTo}
-            seekHereLabel={seekHereLabel}
-            innerRef={isActive ? setActiveNode : undefined}
-          />
-        )
-      })}
+      <div className="transcript__segments">
+        {result.segments.map((seg, i) => {
+          const isActive = i === activeSegment
+          return (
+            <SegmentRow
+              key={segmentKey(seg)}
+              seg={seg}
+              isActive={isActive}
+              activeWord={isActive ? activeWord : -1}
+              onSeek={seekTo}
+              seekHereLabel={seekHereLabel}
+              innerRef={isActive ? setActiveNode : undefined}
+            />
+          )
+        })}
+      </div>
     </div>
   )
 }

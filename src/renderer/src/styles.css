@@ -1031,10 +1031,20 @@ button:disabled {
   color: var(--muted);
 }
 
+.transcript__segments {
+  min-height: 240px;
+  max-height: clamp(320px, 55vh, 640px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 6px;
+  scrollbar-gutter: stable;
+}
+
 /* ── 타이밍 모니터 플레이어 ── */
 .media-player {
-  position: sticky;
-  top: 0;
   z-index: 5;
   width: 100%;
   background: var(--canvas);
@@ -1064,7 +1074,8 @@ button:disabled {
   border-left: 2px solid var(--border-strong);
   padding-left: 12px;
   transition: border-color 0.15s ease;
-  scroll-margin-top: 80px;
+  scroll-margin-top: 12px;
+  scroll-margin-bottom: 12px;
 }
 
 .segment--active {
