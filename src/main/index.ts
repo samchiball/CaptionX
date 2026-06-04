@@ -47,8 +47,10 @@ function createWindow(): BrowserWindow {
     console.error('[preload] error', path, error)
   })
   if (is.dev) {
-    window.webContents.on('console-message', (_e, level, message, line, source) => {
-      if (level >= 2) console.error(`[renderer console] ${message} (${source}:${line})`)
+    window.webContents.on('console-message', ({ level, message, lineNumber, sourceId }) => {
+      if (level === 'warning' || level === 'error') {
+        console.error(`[renderer console] ${message} (${sourceId}:${lineNumber})`)
+      }
     })
   }
 
