@@ -1640,3 +1640,31 @@ button:disabled {
 :root[data-ui-theme="doodle"] .qitem--error {
   border-color: var(--danger);
 }
+
+/* Doodle 테마 전사 자막 단어 및 세그먼트 활성/호버 하이라이트 오버라이드 */
+:root[data-ui-theme="doodle"] button.word--active,
+:root[data-ui-theme="doodle"] button.word--active:hover:not(:disabled) {
+  background: var(--accent);
+  color: #fff;
+}
+
+:root[data-ui-theme="doodle"] button.word:hover:not(:disabled) {
+  background: var(--accent-soft);
+}
+
+:root[data-ui-theme="doodle"] .segment--active .segment__time {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+:root[data-ui-theme="doodle"] button.segment__time:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+:root[data-ui-theme="doodle"] .segment--active .segment__plain,
+:root[data-ui-theme="doodle"] .segment--active button.segment__plain:hover:not(:disabled) {
+  border-color: var(--accent);
+  box-shadow: 3px 3px 0 var(--accent);
+  color: var(--text-strong);
+}
