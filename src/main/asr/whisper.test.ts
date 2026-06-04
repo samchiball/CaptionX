@@ -1,10 +1,44 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   buildHotwordPrompt,
   buildWhisperOptions,
   makeProgressForwarder,
-  parseTranscription
+  parseTranscription,
+  transcribe
 } from './whisper'
+
+let mockTranscribeCallCount = 0
+let mockTranscribeActiveCount = 0
+let maxMockTranscribeConcurrentCount = 0
+
+vi.mock('@kutalia/whisper-node-addon', () => {
+  return {
+    default: {
+      transcribe: vi.fn(async () => {
+        mockTranscribeCallCount++
+        mockTranscribeActiveCount++
+        maxMockTranscribeConcurrentCount = Math.max(
+          maxMockTranscribeConcurrentCount,
+          mockTranscribeActiveCount
+        )
+        // Simulate inference latency
+        await new Promise((resolve) => setTimeout(resolve, 50))
+        mockTranscribeActiveCount--
+        return {
+          transcription: [['00:00:00.000', '00:00:01.000', 'mock text']],
+          language: 'ko'
+        }
+      })
+    }
+  }
+})
+
+vi.mock('../models/manager', () => {
+  return {
+    ensureWhisperModel: vi.fn(async () => 'fake-whisper-model-path.bin'),
+    ensureVadModel: vi.fn(async () => 'fake-vad-model-path.bin')
+  }
+})
 
 describe('buildHotwordPrompt', () => {
   it('단어들을 쉼표로 이어 프롬프트를 만든다', () => {
@@ -224,5 +258,31 @@ describe('buildWhisperOptions', () => {
       vad: false,
       max_len: 1
     })
+  })
+})
+
+describe('transcribe Mutex concurrency test', () => {
+  it('동시 전사 시 락을 통해 순차적으로 실행되는지 검증한다', async () => {
+    mockTranscribeCallCount = 0
+    mockTranscribeActiveCount = 0
+    maxMockTranscribeConcurrentCount = 0
+
+    // 동시에 3개의 transcribe 실행 요청
+    const p1 = transcribe(new Float32Array(), { model: 'base', gpu: false, vad: false })
+    const p2 = transcribe(new Float32Array(), { model: 'base', gpu: false, vad: false })
+    const p3 = transcribe(new Float32Array(), { model: 'base', gpu: false, vad: false })
+
+    const [r1, r2, r3] = await Promise.all([p1, p2, p3])
+
+    // 3개 모두 전사가 정상 완료되었는지 확인
+    expect(r1.segments[0].text).toBe('mock text')
+    expect(r2.segments[0].text).toBe('mock text')
+    expect(r3.segments[0].text).toBe('mock text')
+
+    // 전사 총 호출 횟수
+    expect(mockTranscribeCallCount).toBe(3)
+
+    // 동시에 들어간 횟수는 최대 1이어야 함 (순차 실행 검증)
+    expect(maxMockTranscribeConcurrentCount).toBe(1)
   })
 })

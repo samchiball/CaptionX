@@ -118,28 +118,36 @@ export async function runTranscription(
   // whisper.cpp 네이티브 호출은 중단 API가 없다. abort 시 결과를 기다리지 않고
   // 즉시 취소로 처리해 UI를 풀고 JS 힙을 회수한다(네이티브 작업은 백그라운드 종료).
   const result = await raceCancellation(
-    transcribe(processedPcm, {
-      model: options.model,
-      language: options.language,
-      gpu: options.gpu,
-      vad: options.vad,
-      prompt,
-      threads: options.threads,
-      onModelProgress: ({ received, total }) => {
-        modelDownloadFired = true
-        onProgress({
-          stage: 'transcribe',
-          pct: total > 0 ? Math.round((received / total) * 30) : 0,
-          message: 'progress.message.transcribeDownloading'
-        })
+    transcribe(
+      processedPcm,
+      {
+        model: options.model,
+        language: options.language,
+        gpu: options.gpu,
+        vad: options.vad,
+        prompt,
+        threads: options.threads,
+        onModelProgress: ({ received, total }) => {
+          modelDownloadFired = true
+          onProgress({
+            stage: 'transcribe',
+            pct: total > 0 ? Math.round((received / total) * 30) : 0,
+            message: 'progress.message.transcribeDownloading'
+          })
+        },
+        // 장시간 파일은 전사 호출 한 번이 가장 오래 걸린다. 네이티브 진행률(0..100)을
+        // 그대로 표시해 진행 표시가 멈춘 것처럼 보이지 않게 한다.
+        onTranscribeProgress: (pct) => {
+          const finalPct = modelDownloadFired ? 30 + Math.round((pct / 100) * 70) : pct
+          onProgress({
+            stage: 'transcribe',
+            pct: finalPct,
+            message: 'progress.message.transcribing'
+          })
+        }
       },
-      // 장시간 파일은 전사 호출 한 번이 가장 오래 걸린다. 네이티브 진행률(0..100)을
-      // 그대로 표시해 진행 표시가 멈춘 것처럼 보이지 않게 한다.
-      onTranscribeProgress: (pct) => {
-        const finalPct = modelDownloadFired ? 30 + Math.round((pct / 100) * 70) : pct
-        onProgress({ stage: 'transcribe', pct: finalPct, message: 'progress.message.transcribing' })
-      }
-    }),
+      signal
+    ),
     signal
   )
   throwIfCanceled(signal)
