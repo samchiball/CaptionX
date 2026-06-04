@@ -46,12 +46,16 @@ async function createSession(onnxPath: string, gpu: boolean): Promise<ort.Infere
   // throw하므로 지연 로드한다. 정렬이 필요할 때만 로드해 앱 부팅을 보호한다.
   const ortRuntime = await getOrtRuntime()
   const intraOpThreads = gpu ? undefined : Math.max(1, Math.min(4, os.cpus().length / 2))
+  const sessionOptions: ort.InferenceSession.SessionOptions = {
+    executionProviders: executionProviders(gpu) as ort.InferenceSession.ExecutionProviderConfig[],
+    graphOptimizationLevel: 'all'
+  }
+  if (intraOpThreads !== undefined) {
+    sessionOptions.intraOpNumThreads = intraOpThreads
+  }
+
   try {
-    return await ortRuntime.InferenceSession.create(onnxPath, {
-      executionProviders: executionProviders(gpu) as ort.InferenceSession.ExecutionProviderConfig[],
-      intraOpNumThreads: intraOpThreads,
-      graphOptimizationLevel: 'all'
-    })
+    return await ortRuntime.InferenceSession.create(onnxPath, sessionOptions)
   } catch (err) {
     if (!gpu) throw err
     console.error('GPU 정렬 세션 생성 실패, CPU로 폴백합니다:', (err as Error).message)
