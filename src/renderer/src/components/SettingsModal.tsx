@@ -1,3 +1,4 @@
+import type { DataPathKey, DataPaths } from '@shared/types'
 import { useEffect, useRef, useState } from 'react'
 import {
   MAX_CONCURRENCY,
@@ -50,6 +51,7 @@ export function SettingsModal({
   useClickOutside(dialogRef, onClose)
 
   const [version, setVersion] = useState<string>('')
+  const [dataPaths, setDataPaths] = useState<DataPaths | null>(null)
 
   // 모달이 열릴 때 버전 정보를 가져온다.
   useEffect(() => {
@@ -61,6 +63,24 @@ export function SettingsModal({
         console.error('[SettingsModal] Failed to get app version:', err)
       })
   }, [open])
+
+  // 모달이 열릴 때 입력 데이터 저장 경로를 가져온다.
+  useEffect(() => {
+    if (!open) return
+    window.api
+      .getDataPaths()
+      .then((p) => setDataPaths(p))
+      .catch((err) => {
+        console.error('[SettingsModal] Failed to get data paths:', err)
+      })
+  }, [open])
+
+  // 지정한 데이터 저장소를 파일 탐색기에서 연다.
+  const openDataPath = (key: DataPathKey): void => {
+    window.api.openDataPath(key).catch((err) => {
+      console.error('[SettingsModal] Failed to open data path:', err)
+    })
+  }
 
   // ESC 로 닫기.
   useEffect(() => {
@@ -167,6 +187,36 @@ export function SettingsModal({
               </select>
             </div>
           </label>
+
+          <div className="modal__separator" />
+
+          <div className="modal__data-storage">
+            <h3 className="modal__section-title">{t('settings.dataStorage')}</h3>
+            <p className="modal__data-storage-desc">{t('settings.dataStorage.desc')}</p>
+            {(
+              [
+                ['history', t('settings.dataStorage.history')],
+                ['audioCache', t('settings.dataStorage.audioCache')]
+              ] as Array<[DataPathKey, string]>
+            ).map(([key, label]) => (
+              <div className="modal__data-row" key={key}>
+                <div className="modal__data-info">
+                  <span className="modal__data-label">{label}</span>
+                  <code className="modal__data-path" title={dataPaths?.[key] ?? ''}>
+                    {dataPaths?.[key] ?? '…'}
+                  </code>
+                </div>
+                <button
+                  type="button"
+                  className="btn-ghost"
+                  onClick={() => openDataPath(key)}
+                  disabled={!dataPaths}
+                >
+                  {t('settings.dataStorage.open')}
+                </button>
+              </div>
+            ))}
+          </div>
 
           <div className="modal__separator" />
 
