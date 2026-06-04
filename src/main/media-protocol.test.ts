@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -92,7 +93,7 @@ describe('mimeFor', () => {
 describe('resolveMediaFilePath', () => {
   it('인코딩된 Windows 절대 경로를 원래 경로로 복원한다', () => {
     const filePath = String.raw`C:\Users\kwk13\Videos\한글 test file.m4a`
-    const url = `captionx-media://file/${encodeURIComponent(filePath)}`
+    const url = `captionx-media://file/${Buffer.from(filePath, 'utf-8').toString('base64url')}`
     expect(resolveMediaFilePath(url)).toBe(filePath)
   })
 })

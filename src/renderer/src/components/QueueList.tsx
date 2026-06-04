@@ -3,12 +3,11 @@ import { memo, useState } from 'react'
 import type { ItemStatus, QueueItem } from '../hooks/useBatch'
 import type { UiThemePreference } from '../hooks/useTheme'
 import { useTranslation } from '../i18n'
-import { isMultiTrack } from '../tracks'
 import { CloseIcon } from './DoodleIcons'
 import { ExportBar } from './ExportBar'
 import { ProgressBar } from './ProgressBar'
 import { ResplitBar } from './ResplitBar'
-import { TrackSelector } from './TrackSelector'
+import { TrackMonitor } from './TrackMonitor'
 import { TranscriptView } from './TranscriptView'
 
 const STATUS_KEY: Record<ItemStatus, `status.${ItemStatus}`> = {
@@ -43,10 +42,11 @@ const Row = memo(function Row({
   const [open, setOpen] = useState(false)
   const t = useTranslation()
   const hasResult = item.status === 'done' && item.result
-  // 멀티트랙이고 아직 처리 전(대기·취소·오류)일 때만 전사 트랙을 고를 수 있다.
-  // 진행 중·완료 후에는 이미 특정 트랙으로 처리되었으므로 잠근다.
+  // 트랙을 조사했고(빈 배열이 아니고) 아직 처리 전(대기·취소·오류)일 때 트랙 선택 +
+  // 들어보기(모니터링)를 노출한다. 단일·멀티 트랙 모두 드롭다운을 유지한다.
+  // 진행 중·완료 후에는 이미 특정 트랙으로 처리되었으므로 띄우지 않는다.
   const canPickTrack =
-    isMultiTrack(item.tracks) && item.status !== 'running' && item.status !== 'done'
+    (item.tracks?.length ?? 0) >= 1 && item.status !== 'running' && item.status !== 'done'
 
   return (
     <li className={`qitem qitem--${item.status}`}>
@@ -79,11 +79,11 @@ const Row = memo(function Row({
       </div>
 
       {canPickTrack && item.tracks && (
-        <TrackSelector
+        <TrackMonitor
+          filePath={item.filePath}
           tracks={item.tracks}
           value={item.trackIndex}
           onChange={(idx) => onSetTrack(item.id, idx)}
-          labelKey="track.select"
         />
       )}
 

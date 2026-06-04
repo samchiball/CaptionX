@@ -16,6 +16,7 @@ import {
 import { app, BrowserWindow, dialog, type IpcMainInvokeEvent, ipcMain, shell } from 'electron'
 import { preparePreviewAudio, cacheDir as previewCacheDir } from './audio/preview'
 import { probeAudioTracks } from './audio/tracks'
+import { getWaveform } from './audio/waveform'
 import { resplitResult } from './edit/resplit'
 import { extensionFor, serialize } from './export/subtitle'
 import { deleteEntry, getEntry, historyDir, listEntries, saveEntry } from './history/store'
@@ -177,6 +178,11 @@ export function registerIpcHandlers(): void {
     IPC.prepareMedia,
     async (_event, filePath: string, trackIndex?: number): Promise<string> =>
       preparePreviewAudio(filePath, trackIndex)
+  )
+
+  ipcMain.handle(
+    IPC.getWaveform,
+    async (_event, audioPath: string): Promise<number[]> => getWaveform(audioPath)
   )
 
   // 멀티트랙 영상의 오디오 트랙 목록을 조사한다(전사·모니터링 트랙 선택용).

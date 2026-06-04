@@ -105,6 +105,8 @@ const ko = {
   // 멀티 오디오 트랙 선택·모니터링
   'track.select': '전사 트랙',
   'track.monitor': '모니터링 트랙',
+  'track.listen': '들어보기',
+  'track.hideMonitor': '닫기',
   'track.name': '트랙 {index}',
   'track.mono': '모노',
   'track.stereo': '스테레오',
@@ -286,6 +288,8 @@ const en: Messages = {
 
   'track.select': 'Transcription track',
   'track.monitor': 'Monitoring track',
+  'track.listen': 'Listen',
+  'track.hideMonitor': 'Close',
   'track.name': 'Track {index}',
   'track.mono': 'Mono',
   'track.stereo': 'Stereo',
@@ -456,6 +460,8 @@ const ja: Messages = {
 
   'track.select': '文字起こしトラック',
   'track.monitor': 'モニタリングトラック',
+  'track.listen': '試聴',
+  'track.hideMonitor': '閉じる',
   'track.name': 'トラック {index}',
   'track.mono': 'モノラル',
   'track.stereo': 'ステレオ',
@@ -625,6 +631,8 @@ const es: Messages = {
 
   'track.select': 'Pista de transcripción',
   'track.monitor': 'Pista de monitoreo',
+  'track.listen': 'Escuchar',
+  'track.hideMonitor': 'Cerrar',
   'track.name': 'Pista {index}',
   'track.mono': 'Mono',
   'track.stereo': 'Estéreo',
@@ -798,6 +806,8 @@ const fr: Messages = {
 
   'track.select': 'Piste de transcription',
   'track.monitor': 'Piste de monitoring',
+  'track.listen': 'Écouter',
+  'track.hideMonitor': 'Fermer',
   'track.name': 'Piste {index}',
   'track.mono': 'Mono',
   'track.stereo': 'Stéréo',
@@ -970,6 +980,8 @@ const de: Messages = {
 
   'track.select': 'Transkriptionsspur',
   'track.monitor': 'Monitoring-Spur',
+  'track.listen': 'Anhören',
+  'track.hideMonitor': 'Schließen',
   'track.name': 'Spur {index}',
   'track.mono': 'Mono',
   'track.stereo': 'Stereo',
@@ -1138,6 +1150,8 @@ const zhHans: Messages = {
 
   'track.select': '转写音轨',
   'track.monitor': '监听音轨',
+  'track.listen': '试听',
+  'track.hideMonitor': '关闭',
   'track.name': '音轨 {index}',
   'track.mono': '单声道',
   'track.stereo': '立体声',
@@ -1302,6 +1316,8 @@ const zhHant: Messages = {
 
   'track.select': '轉寫音軌',
   'track.monitor': '監聽音軌',
+  'track.listen': '試聽',
+  'track.hideMonitor': '關閉',
   'track.name': '音軌 {index}',
   'track.mono': '單聲道',
   'track.stereo': '立體聲',

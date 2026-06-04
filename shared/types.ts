@@ -165,7 +165,8 @@ export const IPC = {
   historyLoad: 'captionx:history-load',
   getVersion: 'captionx:get-version',
   getDataPaths: 'captionx:get-data-paths',
-  openDataPath: 'captionx:open-data-path'
+  openDataPath: 'captionx:open-data-path',
+  getWaveform: 'captionx:get-waveform'
 } as const
 
 /**

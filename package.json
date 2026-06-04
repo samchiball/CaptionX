@@ -1,6 +1,6 @@
 {
   "name": "captionx",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Python 없이 바로 실행되는 자막 전사 데스크톱 앱 (Whisper 전사 + wav2vec2 단어 레벨 강제정렬)",
   "main": "./out/main/index.js",
   "author": "stelbite",
@@ -35,7 +35,8 @@
     "@fontsource/gaegu": "^5.2.8",
     "@kutalia/whisper-node-addon": "^1.1.0",
     "ffmpeg-static": "^5.2.0",
-    "onnxruntime-node": "^1.20.1"
+    "onnxruntime-node": "^1.20.1",
+    "wavesurfer.js": "^7.12.7"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",

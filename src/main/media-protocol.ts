@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer'
 import type { FileHandle } from 'node:fs/promises'
 import { open, stat } from 'node:fs/promises'
 import { isMediaPath, MEDIA_SCHEME } from '@shared/types'
@@ -177,7 +178,7 @@ export function fileRangeStream(
 export function resolveMediaFilePath(requestUrl: string): string {
   const url = new URL(requestUrl)
   const encoded = url.pathname.replace(/^\/+/, '')
-  return decodeURIComponent(encoded)
+  return Buffer.from(encoded, 'base64url').toString('utf-8')
 }
 
 /**

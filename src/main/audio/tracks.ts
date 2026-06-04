@@ -17,8 +17,9 @@ import { resolveFfmpegPath } from './decode'
 export function parseAudioStreams(stderr: string): AudioTrack[] {
   const tracks: AudioTrack[] = []
   const lines = stderr.split(/\r?\n/)
-  // 오디오 스트림 헤더: Stream #<file>:<stream>[(lang)]: Audio: <codec> ...
-  const streamRe = /^\s*Stream #\d+:\d+(?:\((\w+)\))?: Audio:\s*([^\s,(]+)/
+  // 오디오 스트림 헤더: Stream #<file>:<stream>[[0xID]][(lang)]: Audio: <codec> ...
+  // mp4/ts 등은 스트림 번호 뒤에 16진 식별자([0x1])를 덧붙이므로 이를 선택적으로 흡수한다.
+  const streamRe = /^\s*Stream #\d+:\d+(?:\[0x[0-9a-fA-F]+\])?(?:\((\w+)\))?: Audio:\s*([^\s,(]+)/
   // 채널 레이아웃 토큰. 흔한 표기를 채널 수로 환산한다.
   const channelMap: Record<string, number> = {
     mono: 1,

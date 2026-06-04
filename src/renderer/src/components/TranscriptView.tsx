@@ -128,17 +128,20 @@ export function TranscriptView({
 
   // 재생용 오디오를 추출(브라우저 호환)하고 그 경로로 소스를 만든다.
   // 멀티트랙이면 선택한 모니터링 트랙만 추출해, 트랙 전환 시 다시 준비한다.
+  const [audioPath, setAudioPath] = useState<string | null>(null)
   const [src, setSrc] = useState<string | null>(null)
   const [status, setStatus] = useState<'preparing' | 'ready' | 'error'>('preparing')
   useEffect(() => {
     let cancelled = false
     setStatus('preparing')
     setSrc(null)
+    setAudioPath(null)
     window.api
       .prepareMedia(filePath, multiTrack ? monitorTrack : undefined)
-      .then((audioPath) => {
+      .then((path) => {
         if (cancelled) return
-        setSrc(window.api.mediaUrl(audioPath))
+        setAudioPath(path)
+        setSrc(window.api.mediaUrl(path))
         setStatus('ready')
       })
       .catch(() => {
@@ -159,7 +162,7 @@ export function TranscriptView({
           labelKey="track.monitor"
         />
       )}
-      <MediaPlayer ref={mediaRef} src={src} status={status} />
+      <MediaPlayer ref={mediaRef} audioPath={audioPath} src={src} status={status} />
       <div className="transcript__meta">
         {t('transcript.language', { language: result.language })}
       </div>

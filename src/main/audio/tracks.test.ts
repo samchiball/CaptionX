@@ -22,6 +22,18 @@ describe('parseAudioStreams', () => {
     ])
   })
 
+  it('mp4/ts의 16진 스트림 식별자([0x1])가 붙어도 파싱한다', () => {
+    const stderr = [
+      '  Stream #0:0[0x1](und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, mono, fltp, 70 kb/s (default)',
+      '  Stream #0:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 68 kb/s'
+    ].join('\n')
+    const tracks = parseAudioStreams(stderr)
+    expect(tracks.map((t) => t.index)).toEqual([0, 1])
+    expect(tracks[0].codec).toBe('aac')
+    expect(tracks[0].channels).toBe(1)
+    expect(tracks[1].channels).toBe(2)
+  })
+
   it('비디오만 있고 오디오가 없으면 빈 배열', () => {
     const stderr = '  Stream #0:0: Video: h264, yuv420p, 1280x720'
     expect(parseAudioStreams(stderr)).toEqual([])

@@ -1,6 +1,6 @@
 # AGENTS.md — CaptionX
 
-Python 없이 win/mac/linux에서 바로 실행되는 자막 전사 데스크톱 앱.
+최종 사용자를 위한 win/mac/linux에서 바로 실행되는 자막 전사 데스크톱 앱.
 Whisper(whisper.cpp)로 전사하고 wav2vec2 강제정렬로 단어 레벨 타임스탬프를 만든다.
 
 ## 기술 스택
