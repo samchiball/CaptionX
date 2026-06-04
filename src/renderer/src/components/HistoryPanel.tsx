@@ -4,7 +4,7 @@ import type {
   ResplitOptions,
   TranscriptResult
 } from '@shared/types'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { HistoryApi } from '../hooks/useHistory'
 import type { UiThemePreference } from '../hooks/useTheme'
 import { useTranslation } from '../i18n'
@@ -107,12 +107,13 @@ export function HistoryPanel({ api, uiTheme }: Props): React.JSX.Element {
   const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest')
   const t = useTranslation()
 
-  const sortedEntries = [...entries].sort((a, b) => {
-    if (sortBy === 'newest') {
-      return b.createdAt - a.createdAt
-    }
-    return a.createdAt - b.createdAt
-  })
+  const sortedEntries = useMemo(
+    () =>
+      [...entries].sort((a, b) =>
+        sortBy === 'newest' ? b.createdAt - a.createdAt : a.createdAt - b.createdAt
+      ),
+    [entries, sortBy]
+  )
 
   return (
     <section className="history">

@@ -40,6 +40,8 @@ export function useHistory(): HistoryApi {
 
   const remove = useCallback(async (id: string): Promise<void> => {
     await window.api.historyDelete(id)
+    // load 시 동일 id로 메인 결과 맵에 적재됐을 수 있으므로 함께 해제한다.
+    void window.api.releaseResult(id)
     setEntries((prev) => prev.filter((e) => e.id !== id))
   }, [])
 
