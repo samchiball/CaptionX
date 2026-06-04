@@ -61,6 +61,21 @@ async function saveSubtitleViaDialog(
 }
 
 /**
+ * 사용자 홈 디렉터리 경로를 ~ 로 마스킹하여 직접적인 노출을 방지합니다.
+ */
+export function maskPath(p: string, homeDir?: string): string {
+  try {
+    const home = homeDir || app.getPath('home')
+    if (home && p.toLowerCase().startsWith(home.toLowerCase())) {
+      return `~${p.slice(home.length)}`
+    }
+  } catch (err) {
+    console.error('[ipc] 경로 마스킹 실패', err)
+  }
+  return p
+}
+
+/**
  * IPC 핸들러를 1회 등록한다(채널당 단일 핸들러).
  * 진행률은 요청을 보낸 렌더러(event.sender)로 되돌려 보낸다.
  */
@@ -78,7 +93,13 @@ export function registerIpcHandlers(): void {
     return { history: historyDir(), audioCache: previewCacheDir() }
   }
 
-  ipcMain.handle(IPC.getDataPaths, async (): Promise<DataPaths> => dataPaths())
+  ipcMain.handle(IPC.getDataPaths, async (): Promise<DataPaths> => {
+    const paths = dataPaths()
+    return {
+      history: maskPath(paths.history),
+      audioCache: maskPath(paths.audioCache)
+    }
+  })
 
   // 알려진 데이터 저장소만 키로 받아 파일 탐색기에서 연다.
   // 임의 경로를 받지 않으므로 렌더러가 시스템의 다른 경로를 열 수 없다.
