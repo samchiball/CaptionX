@@ -8,6 +8,23 @@ interface Props {
   status: 'preparing' | 'ready' | 'error'
 }
 
+export interface MediaPlayerViewState {
+  showPreparing: boolean
+  showError: boolean
+  showControls: boolean
+}
+
+export function mediaPlayerViewState(
+  status: Props['status'],
+  src: string | null
+): MediaPlayerViewState {
+  return {
+    showPreparing: status === 'preparing',
+    showError: status === 'error',
+    showControls: status === 'ready' && Boolean(src)
+  }
+}
+
 /**
  * 자막 타이밍 검증용 오디오 플레이어.
  * 원본 영상 코덱이 브라우저에서 디코드 불가일 수 있어, 메인에서 추출한
@@ -18,15 +35,14 @@ export const MediaPlayer = forwardRef<HTMLMediaElement, Props>(function MediaPla
   ref
 ) {
   const t = useTranslation()
-  const isPreparing = status === 'preparing'
-  const isError = status === 'error' || !src
+  const { showPreparing, showError, showControls } = mediaPlayerViewState(status, src)
 
   return (
     <div className="media-player-container">
-      {isPreparing && (
+      {showPreparing && (
         <div className="media-player media-player--placeholder">{t('media.preparing')}</div>
       )}
-      {isError && (
+      {showError && (
         <div className="media-player media-player--placeholder media-player--error">
           {t('media.error')}
         </div>
@@ -37,7 +53,7 @@ export const MediaPlayer = forwardRef<HTMLMediaElement, Props>(function MediaPla
         src={src || undefined}
         controls
         preload="metadata"
-        style={{ display: status === 'ready' && src ? 'block' : 'none' }}
+        style={{ display: showControls ? 'block' : 'none' }}
       />
     </div>
   )
