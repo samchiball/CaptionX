@@ -1,7 +1,9 @@
-import { writeFile } from 'node:fs/promises'
+import { mkdir, writeFile } from 'node:fs/promises'
 import { basename, extname } from 'node:path'
 import type { HardwareInfo } from '@shared/types'
 import {
+  type DataPathKey,
+  type DataPaths,
   type ExportOptions,
   type HistoryEntryMeta,
   IPC,
@@ -11,8 +13,8 @@ import {
   type TranscribeOptions,
   type TranscriptResult
 } from '@shared/types'
-import { app, BrowserWindow, dialog, type IpcMainInvokeEvent, ipcMain } from 'electron'
-import { preparePreviewAudio } from './audio/preview'
+import { app, BrowserWindow, dialog, type IpcMainInvokeEvent, ipcMain, shell } from 'electron'
+import { preparePreviewAudio, cacheDir as previewCacheDir } from './audio/preview'
 import { resplitResult } from './edit/resplit'
 import { extensionFor, serialize } from './export/subtitle'
 import { deleteEntry, getEntry, historyDir, listEntries, saveEntry } from './history/store'
@@ -69,6 +71,24 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle(IPC.getVersion, (): string => {
     return app.getVersion()
+  })
+
+  // 입력 데이터가 저장되는 디렉터리 경로(설정 화면 표시·열기용).
+  function dataPaths(): DataPaths {
+    return { history: historyDir(), audioCache: previewCacheDir() }
+  }
+
+  ipcMain.handle(IPC.getDataPaths, async (): Promise<DataPaths> => dataPaths())
+
+  // 알려진 데이터 저장소만 키로 받아 파일 탐색기에서 연다.
+  // 임의 경로를 받지 않으므로 렌더러가 시스템의 다른 경로를 열 수 없다.
+  ipcMain.handle(IPC.openDataPath, async (_event, key: DataPathKey): Promise<void> => {
+    const target = dataPaths()[key]
+    if (!target) throw new Error(`알 수 없는 데이터 경로 키: ${key}`)
+    // 아직 한 번도 저장한 적이 없으면 디렉터리가 없을 수 있으므로 먼저 만든다.
+    await mkdir(target, { recursive: true })
+    const err = await shell.openPath(target)
+    if (err) throw new Error(`경로를 열 수 없습니다: ${err}`)
   })
 
   ipcMain.handle(IPC.selectFiles, async (event): Promise<string[]> => {
