@@ -136,8 +136,20 @@ export const IPC = {
   historyList: 'captionx:history-list',
   historyDelete: 'captionx:history-delete',
   historyLoad: 'captionx:history-load',
-  getVersion: 'captionx:get-version'
+  getVersion: 'captionx:get-version',
+  getDataPaths: 'captionx:get-data-paths',
+  openDataPath: 'captionx:open-data-path'
 } as const
+
+/**
+ * 앱이 입력 데이터를 저장하는 위치를 가리키는 키.
+ * - 'history': 전사 결과 보관함(JSON).
+ * - 'audioCache': 미리듣기용으로 추출한 오디오 캐시.
+ */
+export type DataPathKey = 'history' | 'audioCache'
+
+/** 각 데이터 저장소의 절대 경로 모음(설정 화면 표시·열기용). */
+export type DataPaths = Record<DataPathKey, string>
 
 export interface SystemMemoryInfo {
   total: number // MB

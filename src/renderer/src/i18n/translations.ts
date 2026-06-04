@@ -188,6 +188,11 @@ const ko = {
     '큐에 있는 파일을 한 번에 동시에 전사할 개수입니다. 클수록 여러 파일을 함께 처리해 빠르지만 GPU·메모리를 더 씁니다.',
   'tooltip.threads':
     '단일 전사 한 건이 사용하는 whisper.cpp CPU 스레드 수(n_threads)입니다. 동시 전사 수(파일 동시성)와는 다른 개념으로, 한 파일의 추론 속도에 영향을 줍니다. 0이면 시스템 코어 수에 맞춘 기본값을 사용합니다.',
+  'settings.dataStorage': '데이터 저장소',
+  'settings.dataStorage.desc': '전사 결과와 미리듣기용으로 추출된 오디오가 저장되는 위치입니다.',
+  'settings.dataStorage.history': '전사 보관함',
+  'settings.dataStorage.audioCache': '오디오 캐시',
+  'settings.dataStorage.open': '열기',
   'settings.appInfo': '앱 정보',
   'settings.version': '현재 버전'
 } as const
@@ -349,6 +354,12 @@ const en: Messages = {
     'How many queued files to transcribe at once. Higher values process more files together for speed but use more GPU and memory.',
   'tooltip.threads':
     'The number of whisper.cpp CPU threads (n_threads) a single transcription uses. This differs from concurrent jobs (file-level concurrency) and affects the inference speed of one file. 0 uses a default based on your CPU cores.',
+  'settings.dataStorage': 'Data storage',
+  'settings.dataStorage.desc':
+    'Where transcription results and extracted preview audio are stored.',
+  'settings.dataStorage.history': 'Transcript archive',
+  'settings.dataStorage.audioCache': 'Audio cache',
+  'settings.dataStorage.open': 'Open',
   'settings.appInfo': 'App Info',
   'settings.version': 'Current Version'
 }
@@ -505,6 +516,11 @@ const ja: Messages = {
     'キュー内のファイルを同時に文字起こしする数です。大きいほど複数を同時処理して速くなりますが、GPU・メモリをより多く使います。',
   'tooltip.threads':
     '1件の文字起こしが使う whisper.cpp の CPU スレッド数 (n_threads) です。同時処理数（ファイル並列）とは別概念で、1ファイルの推論速度に影響します。0 の場合は CPU コア数に応じた既定値を使います。',
+  'settings.dataStorage': 'データ保存先',
+  'settings.dataStorage.desc': '文字起こし結果とプレビュー用に抽出された音声の保存場所です。',
+  'settings.dataStorage.history': '文字起こしアーカイブ',
+  'settings.dataStorage.audioCache': '音声キャッシュ',
+  'settings.dataStorage.open': '開く',
   'settings.appInfo': 'アプリ情報',
   'settings.version': '現在のバージョン'
 }
@@ -664,6 +680,12 @@ const es: Messages = {
     'Cuántos archivos de la cola se transcriben a la vez. Valores más altos procesan más archivos juntos y son más rápidos, pero usan más GPU y memoria.',
   'tooltip.threads':
     'Número de hilos de CPU de whisper.cpp (n_threads) que usa una sola transcripción. Es distinto de los trabajos simultáneos (concurrencia de archivos) y afecta a la velocidad de inferencia de un archivo. 0 usa un valor predeterminado según los núcleos de tu CPU.',
+  'settings.dataStorage': 'Almacenamiento de datos',
+  'settings.dataStorage.desc':
+    'Donde se guardan los resultados de transcripción y el audio extraído para la vista previa.',
+  'settings.dataStorage.history': 'Archivo de transcripciones',
+  'settings.dataStorage.audioCache': 'Caché de audio',
+  'settings.dataStorage.open': 'Abrir',
   'settings.appInfo': 'Información de la aplicación',
   'settings.version': 'Versión actual'
 }
@@ -824,6 +846,12 @@ const fr: Messages = {
     'Nombre de fichiers de la file transcrits en même temps. Des valeurs plus élevées traitent plus de fichiers ensemble et sont plus rapides, mais utilisent plus de GPU et de mémoire.',
   'tooltip.threads':
     "Nombre de threads CPU whisper.cpp (n_threads) utilisés par une seule transcription. C'est différent des tâches simultanées (concurrence de fichiers) et cela influe sur la vitesse d'inférence d'un fichier. 0 utilise une valeur par défaut basée sur les cœurs de votre processeur.",
+  'settings.dataStorage': 'Stockage des données',
+  'settings.dataStorage.desc':
+    "Emplacement où sont enregistrés les résultats de transcription et l'audio extrait pour l'aperçu.",
+  'settings.dataStorage.history': 'Archive des transcriptions',
+  'settings.dataStorage.audioCache': 'Cache audio',
+  'settings.dataStorage.open': 'Ouvrir',
   'settings.appInfo': "Informations sur l'application",
   'settings.version': 'Version actuelle'
 }
@@ -983,6 +1011,12 @@ const de: Messages = {
     'Wie viele Dateien aus der Warteschlange gleichzeitig transkribiert werden. Höhere Werte verarbeiten mehr Dateien zusammen und sind schneller, verbrauchen aber mehr GPU und Speicher.',
   'tooltip.threads':
     'Anzahl der whisper.cpp-CPU-Threads (n_threads), die eine einzelne Transkription verwendet. Das unterscheidet sich von gleichzeitigen Aufgaben (Datei-Parallelität) und beeinflusst die Inferenzgeschwindigkeit einer Datei. 0 verwendet einen Standardwert basierend auf den CPU-Kernen.',
+  'settings.dataStorage': 'Datenspeicher',
+  'settings.dataStorage.desc':
+    'Speicherort der Transkriptionsergebnisse und des für die Vorschau extrahierten Audios.',
+  'settings.dataStorage.history': 'Transkriptarchiv',
+  'settings.dataStorage.audioCache': 'Audio-Cache',
+  'settings.dataStorage.open': 'Öffnen',
   'settings.appInfo': 'App-Info',
   'settings.version': 'Aktuelle Version'
 }
@@ -1135,6 +1169,11 @@ const zhHans: Messages = {
     '一次同时转录队列中文件的数量。数值越大，同时处理的文件越多、速度越快，但会占用更多 GPU 和内存。',
   'tooltip.threads':
     '单次转录使用的 whisper.cpp CPU 线程数 (n_threads)。它与并发任务数（文件并发）是不同概念，影响单个文件的推理速度。为 0 时使用基于 CPU 核心数的默认值。',
+  'settings.dataStorage': '数据存储位置',
+  'settings.dataStorage.desc': '转录结果和用于预览提取的音频的保存位置。',
+  'settings.dataStorage.history': '转录存档',
+  'settings.dataStorage.audioCache': '音频缓存',
+  'settings.dataStorage.open': '打开',
   'settings.appInfo': '应用信息',
   'settings.version': '当前版本'
 }
@@ -1287,6 +1326,11 @@ const zhHant: Messages = {
     '一次同時轉錄佇列中檔案的數量。數值越大，同時處理的檔案越多、速度越快，但會佔用更多 GPU 和記憶體。',
   'tooltip.threads':
     '單次轉錄使用的 whisper.cpp CPU 執行緒數 (n_threads)。它與並行任務數（檔案並行）是不同概念，會影響單一檔案的推論速度。為 0 時使用依 CPU 核心數而定的預設值。',
+  'settings.dataStorage': '資料儲存位置',
+  'settings.dataStorage.desc': '轉錄結果與用於預覽擷取的音訊的儲存位置。',
+  'settings.dataStorage.history': '轉錄封存',
+  'settings.dataStorage.audioCache': '音訊快取',
+  'settings.dataStorage.open': '開啟',
   'settings.appInfo': '應用程式資訊',
   'settings.version': '目前版本'
 }
