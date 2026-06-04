@@ -1,4 +1,4 @@
-import type { ExportOptions, ResplitOptions } from '@shared/types'
+import type { AudioTrack, ExportOptions, ResplitOptions } from '@shared/types'
 import { memo, useState } from 'react'
 import type { ItemStatus, QueueItem } from '../hooks/useBatch'
 import type { UiThemePreference } from '../hooks/useTheme'
@@ -20,11 +20,13 @@ const STATUS_KEY: Record<ItemStatus, `status.${ItemStatus}`> = {
 
 interface RowProps {
   item: QueueItem
+  items: QueueItem[]
   onRemove: (id: string) => void
   onCancel: (id: string) => void
   onExport: (id: string, options: ExportOptions) => Promise<string | null>
   onResplit: (id: string, options: ResplitOptions) => Promise<void>
   onSetTrack: (id: string, trackIndex: number) => void
+  onAddTrackItem: (filePath: string, trackIndex: number, tracks: AudioTrack[]) => void
   uiTheme: UiThemePreference
 }
 
@@ -32,16 +34,22 @@ interface RowProps {
 // 콜백·uiTheme이 안정적인 상태에서 실제로 바뀐 항목(item) 행만 리렌더되게 한다.
 const Row = memo(function Row({
   item,
+  items,
   onRemove,
   onCancel,
   onExport,
   onResplit,
   onSetTrack,
+  onAddTrackItem,
   uiTheme
 }: RowProps): React.JSX.Element {
   const [open, setOpen] = useState(false)
   const t = useTranslation()
   const hasResult = item.status === 'done' && item.result
+  const addedTrackIndices = items
+    .filter((it) => it.filePath === item.filePath)
+    .map((it) => it.trackIndex)
+
   // 트랙을 조사했고(빈 배열이 아니고) 아직 처리 전(대기·취소·오류)일 때 트랙 선택 +
   // 들어보기(모니터링)를 노출한다. 단일·멀티 트랙 모두 드롭다운을 유지한다.
   // 진행 중·완료 후에는 이미 특정 트랙으로 처리되었으므로 띄우지 않는다.
@@ -83,7 +91,9 @@ const Row = memo(function Row({
           filePath={item.filePath}
           tracks={item.tracks}
           value={item.trackIndex}
+          addedTracks={addedTrackIndices}
           onChange={(idx) => onSetTrack(item.id, idx)}
+          onAddTrackItem={onAddTrackItem}
         />
       )}
 
@@ -120,6 +130,7 @@ interface Props {
   onExport: (id: string, options: ExportOptions) => Promise<string | null>
   onResplit: (id: string, options: ResplitOptions) => Promise<void>
   onSetTrack: (id: string, trackIndex: number) => void
+  onAddTrackItem: (filePath: string, trackIndex: number, tracks: AudioTrack[]) => void
   uiTheme: UiThemePreference
 }
 
@@ -130,6 +141,7 @@ export function QueueList({
   onExport,
   onResplit,
   onSetTrack,
+  onAddTrackItem,
   uiTheme
 }: Props): React.JSX.Element | null {
   if (items.length === 0) return null
@@ -139,11 +151,13 @@ export function QueueList({
         <Row
           key={item.id}
           item={item}
+          items={items}
           onRemove={onRemove}
           onCancel={onCancel}
           onExport={onExport}
           onResplit={onResplit}
           onSetTrack={onSetTrack}
+          onAddTrackItem={onAddTrackItem}
           uiTheme={uiTheme}
         />
       ))}

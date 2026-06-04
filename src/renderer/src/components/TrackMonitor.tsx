@@ -1,5 +1,6 @@
 import type { AudioTrack } from '@shared/types'
 import { memo, useEffect, useRef, useState } from 'react'
+import { useTranslation } from '../i18n'
 import { MediaPlayer } from './MediaPlayer'
 import { TrackSelector } from './TrackSelector'
 
@@ -10,8 +11,12 @@ interface Props {
   tracks: AudioTrack[]
   /** 현재 선택된 트랙 순번(0부터). 이 트랙이 전사에 그대로 쓰인다. */
   value: number
+  /** 이미 큐에 등록된 트랙 인덱스들 */
+  addedTracks?: number[]
   /** 트랙 변경 콜백. */
   onChange: (trackIndex: number) => void
+  /** 트랙 복제 추가 콜백. */
+  onAddTrackItem?: (filePath: string, trackIndex: number, tracks: AudioTrack[]) => void
   /** 처리 중 등으로 비활성화할지. */
   disabled?: boolean
 }
@@ -30,7 +35,9 @@ export const TrackMonitor = memo(function TrackMonitor({
   filePath,
   tracks,
   value,
+  addedTracks,
   onChange,
+  onAddTrackItem,
   disabled
 }: Props): React.JSX.Element {
   const [audioPath, setAudioPath] = useState<string | null>(null)
@@ -60,6 +67,16 @@ export const TrackMonitor = memo(function TrackMonitor({
     }
   }, [filePath, value])
 
+  const t = useTranslation()
+  const remainingTracks = tracks.filter((tk) => !addedTracks?.includes(tk.index))
+  const canAdd = remainingTracks.length > 0 && !disabled
+
+  const handleAddTrack = (): void => {
+    if (remainingTracks.length > 0 && onAddTrackItem) {
+      onAddTrackItem(filePath, remainingTracks[0].index, tracks)
+    }
+  }
+
   return (
     <div className="track-monitor">
       <div className="track-monitor__row">
@@ -70,6 +87,16 @@ export const TrackMonitor = memo(function TrackMonitor({
           labelKey="track.select"
           disabled={disabled}
         />
+        {canAdd && (
+          <button
+            type="button"
+            className="track-monitor__add-btn"
+            onClick={handleAddTrack}
+            title={t('track.add')}
+          >
+            +
+          </button>
+        )}
       </div>
       <MediaPlayer ref={audioRef} audioPath={audioPath} src={src} status={status} />
     </div>

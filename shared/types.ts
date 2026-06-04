@@ -71,6 +71,11 @@ export interface TranscribeOptions {
    * 트랙을 고를 때 쓴다. 미지정이면 ffmpeg 기본 트랙(보통 0:a:0)을 쓴다.
    */
   audioTrackIndex?: number
+  /**
+   * 동시에 전사할 여러 오디오 트랙들의 순번 배열.
+   * 여러 트랙이 지정되면 ffmpeg에서 믹싱(mixdown)하여 전사합니다.
+   */
+  audioTrackIndices?: number[]
   /** Whisper 모델 이름 (예: 'base', 'small', 'medium', 'large-v3') */
   model: string
   /** 언어 코드 (예: 'ko', 'en'), 미지정 시 자동 감지 */
