@@ -1517,16 +1517,25 @@ button:disabled {
 }
 
 :root[data-ui-theme="doodle"][data-theme="dark"] {
-  /* 칠판 초록색 다크 */
-  --bg: #2d352f;
-  --canvas: #222924;
-  --panel: #2d352f;
-  --panel-2: #242a25;
-  --border: #e8e8e8;
+  /* 미드나잇 잉크 다크 — 따뜻한 차콜 종이 위 손그림 느낌 */
+  --bg: #232027;
+  --canvas: #1c1a20;
+  --panel: #232027;
+  --panel-2: #2c2933;
+  --border: #ece8f0;
   --border-strong: #ffffff;
-  --text: #e8e8e8;
+  --text: #ece8f0;
   --text-strong: #ffffff;
-  --hover: #37423a;
+  --muted: #a8a2b4;
+  --hover: #322e3b;
+  /* 손그림 테마용 따뜻한 강조색 (잉크 위에서도 또렷한 호박빛/청록) */
+  --accent: #ffb454;
+  --accent-soft: rgba(255, 180, 84, 0.16);
+  --accent-ring: rgba(255, 180, 84, 0.4);
+  --done: #7fd6a0;
+  --done-soft: rgba(127, 214, 160, 0.18);
+  --danger: #ff8a82;
+  --danger-soft: rgba(255, 138, 130, 0.18);
   --shadow: none;
 }
 
