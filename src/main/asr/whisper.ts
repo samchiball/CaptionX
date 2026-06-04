@@ -1,9 +1,16 @@
 import type { WhisperOptions } from '@kutalia/whisper-node-addon'
-import whisper from '@kutalia/whisper-node-addon'
 import type { Segment, TranscriptResult } from '@shared/types'
 import { throwIfCanceled } from '../cancellation'
 import { parseTimecode } from '../export/timecode'
 import { type DownloadProgress, ensureVadModel, ensureWhisperModel } from '../models/manager'
+
+let whisperPromise: Promise<typeof import('@kutalia/whisper-node-addon')> | null = null
+export function getWhisperModule(): Promise<typeof import('@kutalia/whisper-node-addon')> {
+  if (!whisperPromise) {
+    whisperPromise = import('@kutalia/whisper-node-addon')
+  }
+  return whisperPromise
+}
 
 class Mutex {
   private queue: Promise<void> = Promise.resolve()
@@ -173,7 +180,8 @@ export async function transcribe(
   const release = await whisperMutex.acquire()
   try {
     throwIfCanceled(signal)
-    const result = (await whisper.transcribe(
+    const whisperAddon = await getWhisperModule()
+    const result = (await whisperAddon.transcribe(
       buildWhisperOptions(pcm, modelPath, params, {}, vadModelPath)
     )) as WhisperResult
     return {

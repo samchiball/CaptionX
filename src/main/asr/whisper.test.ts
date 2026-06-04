@@ -12,23 +12,25 @@ let mockTranscribeActiveCount = 0
 let maxMockTranscribeConcurrentCount = 0
 
 vi.mock('@kutalia/whisper-node-addon', () => {
+  const mockFn = vi.fn(async () => {
+    mockTranscribeCallCount++
+    mockTranscribeActiveCount++
+    maxMockTranscribeConcurrentCount = Math.max(
+      maxMockTranscribeConcurrentCount,
+      mockTranscribeActiveCount
+    )
+    // Simulate inference latency
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    mockTranscribeActiveCount--
+    return {
+      transcription: [['00:00:00.000', '00:00:01.000', 'mock text']],
+      language: 'ko'
+    }
+  })
   return {
+    transcribe: mockFn,
     default: {
-      transcribe: vi.fn(async () => {
-        mockTranscribeCallCount++
-        mockTranscribeActiveCount++
-        maxMockTranscribeConcurrentCount = Math.max(
-          maxMockTranscribeConcurrentCount,
-          mockTranscribeActiveCount
-        )
-        // Simulate inference latency
-        await new Promise((resolve) => setTimeout(resolve, 50))
-        mockTranscribeActiveCount--
-        return {
-          transcription: [['00:00:00.000', '00:00:01.000', 'mock text']],
-          language: 'ko'
-        }
-      })
+      transcribe: mockFn
     }
   }
 })
