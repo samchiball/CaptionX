@@ -104,21 +104,47 @@ interface Props {
 
 export function HistoryPanel({ api, uiTheme }: Props): React.JSX.Element {
   const { entries, loading, refresh } = api
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest')
   const t = useTranslation()
+
+  const sortedEntries = [...entries].sort((a, b) => {
+    if (sortBy === 'newest') {
+      return b.createdAt - a.createdAt
+    }
+    return a.createdAt - b.createdAt
+  })
 
   return (
     <section className="history">
       <div className="history__bar">
         <h2 className="history__title">{t('history.title')}</h2>
-        <button type="button" className="btn-ghost" onClick={() => void refresh()}>
-          {t('history.refresh')}
-        </button>
+        <div className="history__actions">
+          <div className="history__sort-buttons">
+            <button
+              type="button"
+              className={`btn-sort ${sortBy === 'newest' ? 'btn-sort--active' : ''}`}
+              onClick={() => setSortBy('newest')}
+            >
+              {t('history.sort.newest')}
+            </button>
+            <button
+              type="button"
+              className={`btn-sort ${sortBy === 'oldest' ? 'btn-sort--active' : ''}`}
+              onClick={() => setSortBy('oldest')}
+            >
+              {t('history.sort.oldest')}
+            </button>
+          </div>
+          <button type="button" className="btn-ghost" onClick={() => void refresh()}>
+            {t('history.refresh')}
+          </button>
+        </div>
       </div>
-      {entries.length === 0 ? (
+      {sortedEntries.length === 0 ? (
         <p className="history__empty">{loading ? t('history.loading') : t('history.empty')}</p>
       ) : (
         <ul className="queue">
-          {entries.map((entry) => (
+          {sortedEntries.map((entry) => (
             <Row key={entry.id} entry={entry} api={api} uiTheme={uiTheme} />
           ))}
         </ul>

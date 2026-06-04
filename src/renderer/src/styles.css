@@ -1668,3 +1668,78 @@ button:disabled {
   box-shadow: 3px 3px 0 var(--accent);
   color: var(--text-strong);
 }
+
+/* ── 보관함 정렬 버튼 스타일 ── */
+.history__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.history__sort-buttons {
+  display: inline-flex;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  gap: 2px;
+}
+
+.btn-sort {
+  background: transparent;
+  border: none;
+  border-radius: calc(var(--radius-sm) - 2px);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-sort:hover:not(.btn-sort--active) {
+  color: var(--text-strong);
+  background: var(--hover);
+}
+
+.btn-sort:active:not(.btn-sort--active) {
+  transform: none;
+}
+
+.btn-sort--active {
+  background: var(--panel);
+  color: var(--accent);
+  box-shadow: var(--shadow);
+}
+
+/* Doodle 테마 오버라이드 */
+:root[data-ui-theme="doodle"] .history__sort-buttons {
+  background: var(--panel);
+  border: 2px solid var(--text);
+  border-radius: var(--radius);
+  padding: 4px;
+  gap: 4px;
+  box-shadow: 2px 2px 0 var(--text);
+}
+
+:root[data-ui-theme="doodle"] .btn-sort {
+  border: none;
+  box-shadow: none;
+  border-radius: calc(var(--radius) - 2px);
+  background: transparent;
+  font-family: inherit;
+  color: var(--muted);
+}
+
+:root[data-ui-theme="doodle"] .btn-sort:hover:not(.btn-sort--active) {
+  color: var(--text);
+  background: var(--hover);
+}
+
+:root[data-ui-theme="doodle"] .btn-sort--active {
+  background: var(--accent-soft);
+  color: var(--text-strong);
+  border: 1.5px solid var(--text);
+  box-shadow: none;
+  font-weight: 700;
+}

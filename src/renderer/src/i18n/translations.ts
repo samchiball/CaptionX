@@ -133,6 +133,8 @@ const ko = {
   'history.segments': '{n}개 구간',
   'history.autoLanguage': '자동',
   'history.removeAria': '삭제',
+  'history.sort.newest': '최신순',
+  'history.sort.oldest': '오래된 순',
 
   // 진행 바
   'stage.decode': '디코드',
@@ -298,6 +300,8 @@ const en: Messages = {
   'history.segments': '{n} segments',
   'history.autoLanguage': 'auto',
   'history.removeAria': 'Delete',
+  'history.sort.newest': 'Newest',
+  'history.sort.oldest': 'Oldest',
 
   'stage.decode': 'Decode',
   'stage.transcribe': 'Transcribe',
@@ -452,6 +456,8 @@ const ja: Messages = {
   'history.segments': '{n} 区間',
   'history.autoLanguage': '自動',
   'history.removeAria': '削除',
+  'history.sort.newest': '新しい順',
+  'history.sort.oldest': '古い順',
 
   'stage.decode': 'デコード',
   'stage.transcribe': '文字起こし',
@@ -609,6 +615,8 @@ const es: Messages = {
   'history.segments': '{n} segmentos',
   'history.autoLanguage': 'auto',
   'history.removeAria': 'Eliminar',
+  'history.sort.newest': 'Más reciente',
+  'history.sort.oldest': 'Más antiguo',
 
   'stage.decode': 'Decodificar',
   'stage.transcribe': 'Transcribir',
@@ -767,6 +775,8 @@ const fr: Messages = {
   'history.segments': '{n} segments',
   'history.autoLanguage': 'auto',
   'history.removeAria': 'Supprimer',
+  'history.sort.newest': 'Le plus récent',
+  'history.sort.oldest': 'Le plus ancien',
 
   'stage.decode': 'Décodage',
   'stage.transcribe': 'Transcription',
@@ -924,6 +934,8 @@ const de: Messages = {
   'history.segments': '{n} Segmente',
   'history.autoLanguage': 'auto',
   'history.removeAria': 'Löschen',
+  'history.sort.newest': 'Neueste zuerst',
+  'history.sort.oldest': 'Älteste zuerst',
 
   'stage.decode': 'Dekodieren',
   'stage.transcribe': 'Transkribieren',
@@ -1074,6 +1086,8 @@ const zhHans: Messages = {
   'history.segments': '{n} 个片段',
   'history.autoLanguage': '自动',
   'history.removeAria': '删除',
+  'history.sort.newest': '最新',
+  'history.sort.oldest': '最旧',
 
   'stage.decode': '解码',
   'stage.transcribe': '转写',
@@ -1224,6 +1238,8 @@ const zhHant: Messages = {
   'history.segments': '{n} 個片段',
   'history.autoLanguage': '自動',
   'history.removeAria': '刪除',
+  'history.sort.newest': '最新',
+  'history.sort.oldest': '最舊',
 
   'stage.decode': '解碼',
   'stage.transcribe': '轉寫',
