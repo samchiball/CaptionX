@@ -44,8 +44,8 @@
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
     "@vitejs/plugin-react": "^4.3.4",
-    "electron": "^34.0.0",
-    "electron-builder": "^25.1.8",
+    "electron": "^42.3.3",
+    "electron-builder": "^26.8.1",
     "electron-vite": "^3.0.0",
     "knip": "^5.42.1",
     "lefthook": "^2.1.9",
@@ -53,6 +53,6 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "typescript": "^5.7.3",
-    "vitest": "^2.1.8"
+    "vitest": "^4.1.8"
   }
 }
