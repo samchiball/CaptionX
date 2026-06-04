@@ -15,13 +15,14 @@ export interface AlignModel {
 /**
  * GPU 우선, 실패 시 CPU로 폴백하는 실행 공급자 목록.
  * onnxruntime-node 기본 빌드가 지원하는 EP만 사용한다(미지원 EP는 네이티브 크래시 위험).
- * - Windows/Linux: CUDA(있을 때) → CPU
+ * - Windows: DirectML(dml) → CPU
+ * - Linux: CUDA → CPU
  * - macOS: CoreML → CPU
- * DirectML('dml')은 node 기본 빌드에 없으므로 제외한다.
  */
 export function executionProviders(gpu: boolean): string[] {
   if (!gpu) return ['cpu']
   if (process.platform === 'darwin') return ['coreml', 'cpu']
+  if (process.platform === 'win32') return ['dml', 'cpu']
   return ['cuda', 'cpu']
 }
 
