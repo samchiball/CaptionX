@@ -1,0 +1,68 @@
+name: CI
+
+# PR·push마다 3개 OS에서 품질 검사 + 패키징이 깨지지 않는지 검증한다.
+# (릴리스는 release.yml이 태그에서 담당. 여기서는 산출물을 아티팩트로만 올린다.)
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# 같은 ref에서 중복 실행되면 이전 것을 취소한다.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # 린트/포맷/타입체크/데드코드/테스트는 OS 무관하므로 1회만 돈다.
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+
+  # 네이티브 의존성(ffmpeg-static, whisper-addon, onnxruntime-node)은 플랫폼별
+  # prebuilt라, 각 타깃 OS의 네이티브 러너에서 빌드해야 한다. ffmpeg-static은 설치
+  # 시점에 현재 OS 바이너리만 받으므로 cross-compile 불가.
+  build:
+    needs: check
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest # win x64
+            pack: pack:win
+          - os: macos-14 # Apple Silicon (arm64) — onnxruntime 정렬 지원
+            pack: pack:mac
+          - os: macos-13 # Intel (x64) — 정렬은 whisper 네이티브로 폴백
+            pack: pack:mac
+          - os: ubuntu-latest # linux x64
+            pack: pack:linux
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Build & package
+        run: npm run ${{ matrix.pack }}
+        env:
+          # PR 빌드에서는 코드 서명을 건너뛴다(서명 인증서는 release에서만).
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: captionx-${{ matrix.os }}
+          path: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.AppImage
+          if-no-files-found: ignore
+          retention-days: 7

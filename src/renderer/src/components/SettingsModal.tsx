@@ -1,0 +1,190 @@
+import { useEffect, useRef, useState } from 'react'
+import {
+  MAX_CONCURRENCY,
+  MAX_THREADS,
+  MIN_CONCURRENCY,
+  MIN_THREADS,
+  normalizeConcurrency,
+  normalizeThreads
+} from '../hooks/useBatch'
+import { useClickOutside } from '../hooks/useClickOutside'
+import type { UiThemePreference } from '../hooks/useTheme'
+import { useTranslation } from '../i18n'
+import { CloseIcon } from './DoodleIcons'
+import { InfoTooltip } from './InfoTooltip'
+
+type SettingsModalProps = {
+  open: boolean
+  onClose: () => void
+  concurrency: number
+  onConcurrencyChange: React.Dispatch<React.SetStateAction<number>>
+  threads: number
+  onThreadsChange: React.Dispatch<React.SetStateAction<number>>
+  /** 권장 동시 전사 수(자원 추정 기반). 초과 시 경고색으로 표시한다. */
+  maxRecommendedConcurrency: number
+  /** 하드웨어 정보를 가져왔는지(권장값 표시 여부). */
+  hasHardware: boolean
+  uiTheme: UiThemePreference
+  onUiThemeChange: (next: UiThemePreference) => void
+}
+
+/**
+ * Ctrl+, 로 여는 시스템 설정 창. 전사 성능 관련 설정을 모은다.
+ *  - 동시 전사 수(concurrency): 큐의 여러 파일을 동시에 처리하는 파일 레벨 동시성.
+ *  - Whisper 스레드 수(n_threads): 단일 전사 한 건이 쓰는 whisper.cpp CPU 스레드 수.
+ */
+export function SettingsModal({
+  open,
+  onClose,
+  concurrency,
+  onConcurrencyChange,
+  threads,
+  onThreadsChange,
+  maxRecommendedConcurrency,
+  hasHardware,
+  uiTheme,
+  onUiThemeChange
+}: SettingsModalProps): React.JSX.Element | null {
+  const t = useTranslation()
+  const dialogRef = useRef<HTMLDivElement>(null)
+  useClickOutside(dialogRef, onClose)
+
+  const [version, setVersion] = useState<string>('')
+
+  // 모달이 열릴 때 버전 정보를 가져온다.
+  useEffect(() => {
+    if (!open) return
+    window.api
+      .getVersion()
+      .then((v) => setVersion(v))
+      .catch((err) => {
+        console.error('[SettingsModal] Failed to get app version:', err)
+      })
+  }, [open])
+
+  // ESC 로 닫기.
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [open, onClose])
+
+  if (!open) return null
+
+  const overConcurrency = hasHardware && concurrency > maxRecommendedConcurrency
+
+  return (
+    <div className="modal-backdrop" role="presentation">
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('settings.title')}
+        ref={dialogRef}
+      >
+        <header className="modal__header">
+          <h2 className="modal__title">{t('settings.title')}</h2>
+          <button
+            type="button"
+            className="modal__close"
+            aria-label={t('settings.close')}
+            onClick={onClose}
+          >
+            <CloseIcon uiTheme={uiTheme} />
+          </button>
+        </header>
+
+        <section className="modal__section">
+          <h3 className="modal__section-title">{t('settings.transcription')}</h3>
+
+          <label className="modal__field">
+            <span className="modal__field-label">
+              {t('settings.concurrency')}
+              <InfoTooltip text={t('tooltip.concurrency')} uiTheme={uiTheme} />
+            </span>
+            <div className="modal__field-input">
+              <input
+                type="number"
+                min={MIN_CONCURRENCY}
+                max={MAX_CONCURRENCY}
+                step={1}
+                value={concurrency}
+                onChange={(e) =>
+                  onConcurrencyChange(
+                    Number.isFinite(e.target.valueAsNumber)
+                      ? e.target.valueAsNumber
+                      : MIN_CONCURRENCY
+                  )
+                }
+                onBlur={() => onConcurrencyChange((v) => normalizeConcurrency(v))}
+              />
+              {hasHardware && (
+                <span
+                  className="modal__hint"
+                  style={{ color: overConcurrency ? 'var(--danger)' : 'var(--accent)' }}
+                >
+                  {t('controls.recommendedMax', { n: maxRecommendedConcurrency })}
+                </span>
+              )}
+            </div>
+          </label>
+
+          <label className="modal__field">
+            <span className="modal__field-label">
+              {t('settings.threads')}
+              <InfoTooltip text={t('tooltip.threads')} uiTheme={uiTheme} />
+            </span>
+            <div className="modal__field-input">
+              <input
+                type="number"
+                min={MIN_THREADS}
+                max={MAX_THREADS}
+                step={1}
+                value={threads}
+                onChange={(e) =>
+                  onThreadsChange(
+                    Number.isFinite(e.target.valueAsNumber) ? e.target.valueAsNumber : MIN_THREADS
+                  )
+                }
+                onBlur={() => onThreadsChange((v) => normalizeThreads(v))}
+              />
+              <span className="modal__hint">{t('settings.threadsAuto')}</span>
+            </div>
+          </label>
+
+          <label className="modal__field">
+            <span className="modal__field-label">{t('settings.uiTheme')}</span>
+            <div className="modal__field-input">
+              <select
+                value={uiTheme}
+                onChange={(e) => onUiThemeChange(e.target.value as UiThemePreference)}
+              >
+                <option value="default">{t('settings.uiTheme.default')}</option>
+                <option value="doodle">{t('settings.uiTheme.doodle')}</option>
+              </select>
+            </div>
+          </label>
+
+          <div className="modal__separator" />
+
+          <div className="modal__app-info">
+            <h3 className="modal__section-title">{t('settings.appInfo')}</h3>
+            <div className="modal__app-card">
+              <div className="modal__app-brand">
+                <span className="modal__app-logo">🎬</span>
+                <div className="modal__app-meta">
+                  <span className="modal__app-name">CaptionX</span>
+                  <span className="modal__app-version-label">{t('settings.version')}</span>
+                </div>
+              </div>
+              <span className="modal__app-version-badge">v{version || '0.1.0'}</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  )
+}

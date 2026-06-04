@@ -1,0 +1,19 @@
+node_modules
+out
+dist
+dist-electron
+release
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example
+# 다운로드 모델 캐시는 userData(리포 밖)에 저장된다. 루트의 우발적 models/ 폴더만
+# 무시하고, 소스 디렉터리 src/main/models/ 는 추적해야 한다(과거 광범위 'models' 패턴 버그).
+/models/
+.scratch
+*.tsbuildinfo
+assets/logo/logo.*~lock~
+*.*~lock~
+.claude/
+.codex/

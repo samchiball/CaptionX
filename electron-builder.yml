@@ -1,0 +1,40 @@
+appId: com.stelbite.captionx
+productName: CaptionX
+directories:
+  buildResources: build
+files:
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!{.eslintrc.cjs,.prettierrc,.prettierignore,eslint.config.js,knip.json}'
+  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json,vitest.config.ts}'
+  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml,package-lock.json}'
+extraResources:
+  - from: resources
+    to: resources
+asarUnpack:
+  - resources/**
+  - '**/*.node'
+  - node_modules/ffmpeg-static/**
+  # 네이티브 애드온은 .node 옆의 동반 공유 라이브러리(.so/.dll/.dylib)까지
+  # 함께 풀어야 dlopen 이 성공한다. .node 만 풀면 libwhisper.so.1 등이
+  # asar 안에 갇혀 "cannot open shared object file" 오류가 난다.
+  - node_modules/@kutalia/whisper-node-addon/**
+  - node_modules/onnxruntime-node/**
+win:
+  target:
+    - nsis
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: true
+  include: build/installer.nsh
+mac:
+  target:
+    - dmg
+  category: public.app-category.productivity
+linux:
+  target:
+    - AppImage
+  category: AudioVideo
+npmRebuild: false
