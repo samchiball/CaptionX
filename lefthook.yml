@@ -8,6 +8,8 @@ pre-commit:
     - name: biome
       glob: "*.{js,jsx,ts,tsx,json,jsonc,css}"
       run: npx biome check --no-errors-on-unmatched {staged_files}
+    - name: knip
+      run: npm run deadcode
 
 pre-push:
   parallel: true
