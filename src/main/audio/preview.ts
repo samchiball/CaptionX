@@ -6,7 +6,7 @@ import { app } from 'electron'
 import { resolveFfmpegPath } from './decode'
 
 /** 재생용 추출 오디오 캐시 루트 (userData/preview-cache) */
-function cacheDir(): string {
+export function cacheDir(): string {
   return join(app.getPath('userData'), 'preview-cache')
 }
 

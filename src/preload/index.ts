@@ -1,5 +1,7 @@
 import { electronAPI } from '@electron-toolkit/preload'
 import {
+  type DataPathKey,
+  type DataPaths,
   type ExportOptions,
   type HardwareInfo,
   type HistoryEntryMeta,
@@ -70,7 +72,13 @@ const api = {
   },
 
   /** 앱 버전 가져오기 */
-  getVersion: (): Promise<string> => ipcRenderer.invoke(IPC.getVersion)
+  getVersion: (): Promise<string> => ipcRenderer.invoke(IPC.getVersion),
+
+  /** 입력 데이터(보관함·오디오 캐시) 저장 경로 가져오기 */
+  getDataPaths: (): Promise<DataPaths> => ipcRenderer.invoke(IPC.getDataPaths),
+
+  /** 지정한 데이터 저장소를 파일 탐색기에서 열기 */
+  openDataPath: (key: DataPathKey): Promise<void> => ipcRenderer.invoke(IPC.openDataPath, key)
 }
 
 export type CaptionXAPI = typeof api
