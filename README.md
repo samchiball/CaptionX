@@ -53,11 +53,14 @@ npm run pack:win   # Windows 설치본 (.exe)  — pack:mac / pack:linux 도 동
 
 - **Windows**: 지원 (x64) — NSIS 설치본(`.exe`)
 - **Linux**: 지원 (x64) — AppImage. 내려받은 뒤 실행 권한이 필요합니다.
+
   ```bash
   chmod +x CaptionX-*.AppImage && ./CaptionX-*.AppImage
   ```
+
 - **macOS**: 빌드 가능하나 검증 안 됨 (실제 기기 테스트 미완료). 배포본이 **미서명·미공증**이면
   Gatekeeper가 "손상됨"으로 차단하므로, 신뢰하는 경우에 한해 격리 속성을 제거하세요.
+
   ```bash
   xattr -dr com.apple.quarantine /Applications/CaptionX.app
   ```
