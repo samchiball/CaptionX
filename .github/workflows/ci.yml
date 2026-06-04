@@ -1,9 +1,9 @@
 name: CI/CD
 
 # 하나의 워크플로우 안에서 분기한다.
-#  - 모든 push/PR: 품질 검사 + 3개 OS 빌드
-#  - main push 시 package.json 버전이 최신 릴리즈보다 높으면 → 릴리즈 자동 배포
-#  - 그 외에는 산출물을 아티팩트로만 업로드
+#  - 모든 push/PR: 품질 검사(check)는 항상 실행
+#  - package.json 버전이 최신 릴리즈보다 높을 때만 → 3개 OS 빌드 후 릴리즈 자동 배포
+#  - 버전이 그대로면 빌드를 건너뛴다(러너 시간 절약)
 on:
   push:
     branches: [main]
@@ -101,6 +101,9 @@ jobs:
   #    prebuilt라 각 타깃 OS의 네이티브 러너에서 빌드해야 한다(cross-compile 불가).
   build:
     needs: gate
+    # package.json 버전이 최신 릴리즈보다 높을 때(=release)만 빌드한다.
+    # 단순 push/PR(버전 그대로)에서는 빌드를 건너뛰어 러너 시간을 아낀다.
+    if: needs.gate.outputs.release == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -136,22 +139,8 @@ jobs:
       - name: Build & package
         run: npm run ${{ matrix.pack }}
 
-      # 릴리즈가 아니면 산출물을 아티팩트로만 업로드.
-      - name: Upload artifacts
-        if: needs.gate.outputs.release != 'true'
-        uses: actions/upload-artifact@v7
-        with:
-          name: captionx-${{ matrix.os }}
-          path: |
-            dist/*.exe
-            dist/*.dmg
-            dist/*.AppImage
-          if-no-files-found: ignore
-          retention-days: 7
-
-      # 릴리즈면 GitHub Release 에 업로드(태그가 없으면 현재 커밋에 생성).
+      # 빌드는 릴리즈일 때만 도므로 항상 GitHub Release 에 업로드(태그가 없으면 현재 커밋에 생성).
       - name: Upload to GitHub Release
-        if: needs.gate.outputs.release == 'true'
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.gate.outputs.tag }}
