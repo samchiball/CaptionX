@@ -75,7 +75,7 @@ shared        main↔renderer 공유 타입
 ## Git 훅 — lefthook (필수)
 
 - 커밋/푸시 훅은 **lefthook**으로 관리한다(`lefthook.yml`). `npm install` 시 `prepare` 스크립트가 자동 설치한다.
-- `pre-commit`: 스테이징된 파일에 `biome check`(린트+포맷+임포트 정렬) 검사, `knip` 데드코드 검사, 그리고 `package.json`/`package-lock.json` 변경 시 `npm audit --audit-level=high` 보안 취약점 검사.
+- `pre-commit`: 스테이징된 파일에 `biome check`(린트+포맷+임포트 정렬) 검사, `knip` 데드코드 검사, 그리고 `package.json`/`package-lock.json` 변경 시 `npm audit --audit-level=low` 보안 취약점 검사(현재 0건이므로 가장 엄격한 기준 유지).
 - `pre-push`: `npm run typecheck` + `npm run test`.
 - **훅 우회 금지.** `--no-verify`, `-n`, `LEFTHOOK=0`, `HUSKY=0`, `git commit`/`git push`의 훅 스킵 옵션 등 어떤 방식으로도 훅을 건너뛰지 않는다.
 - 훅이 실패하면 우회하지 말고 **원인을 고친다**. 검사를 통과한 뒤에만 커밋/푸시한다.
