@@ -128,6 +128,7 @@ export const IPC = {
   selectFiles: 'captionx:select-files',
   transcribe: 'captionx:transcribe',
   cancel: 'captionx:cancel',
+  releaseResult: 'captionx:release-result',
   exportSubtitle: 'captionx:export',
   progress: 'captionx:progress',
   prepareMedia: 'captionx:prepare-media',
