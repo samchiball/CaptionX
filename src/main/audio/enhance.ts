@@ -1,5 +1,5 @@
-import { InferenceSession, Tensor } from 'onnxruntime-node'
-import { executionProviders } from '../align/wav2vec2'
+import type { InferenceSession } from 'onnxruntime-node'
+import { createOrtSession, getOrtRuntime } from '../align/wav2vec2'
 import { CancellationError } from '../cancellation'
 
 /**
@@ -226,9 +226,8 @@ export async function enhanceAudio(
   signal?: AbortSignal
 ): Promise<Float32Array> {
   if (signal?.aborted) throw new CancellationError()
-  const session = await InferenceSession.create(modelPath, {
-    executionProviders: executionProviders(gpu) as InferenceSession.ExecutionProviderConfig[]
-  })
+  // GPU EP 우선, 실패 시 CPU 폴백(정렬 세션과 동일 경로). onnxruntime-node는 지연 로드한다.
+  const session = await createOrtSession(modelPath, gpu)
 
   try {
     return await runEnhance(session, pcm, onProgress, signal)
@@ -250,6 +249,8 @@ async function runEnhance(
   onProgress?: (pct: number) => void,
   signal?: AbortSignal
 ): Promise<Float32Array> {
+  const { Tensor } = await getOrtRuntime()
+
   // 1. STFT
   const { realFlat, imagFlat, numFrames } = stft(pcm, 512, 256)
 
