@@ -44,11 +44,16 @@ export async function getHardwareInfo(): Promise<HardwareInfo> {
             (c) => c && typeof c.AdapterRAM === 'number' && c.AdapterRAM > 0
           )
           if (active?.AdapterRAM && active.Name) {
+            // Win32_VideoController.AdapterRAM은 uint32라 4GiB(=4096MiB)에서 캡된다.
+            // 4GB 초과 GPU는 실제보다 작게 보고되므로, 캡에 근접한 값은 신뢰할 수 없는
+            // 추정치로 보고 total은 비워 둔다(이름만 노출, 리소스 추정은 RAM 기반 폴백).
             const totalMb = Math.round(active.AdapterRAM / (1024 * 1024))
+            const UINT32_CAP_MB = 4095
+            const capped = totalMb >= UINT32_CAP_MB
             cachedGpu = {
               name: active.Name,
-              total: totalMb,
-              free: Math.round(totalMb * 0.7) // estimate
+              total: capped ? 0 : totalMb,
+              free: capped ? 0 : Math.round(totalMb * 0.7) // estimate
             }
           }
         } catch {
