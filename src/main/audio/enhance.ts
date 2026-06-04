@@ -218,6 +218,30 @@ export function istft(
 /**
  * Enhance audio PCM using GTCRN ONNX model
  */
+/**
+ * GTCRN 세션 캐시. `${gpu}:${modelPath}` 키로 1회만 생성해 재사용한다. 정렬 모델
+ * (model-loader.ts)과 동일하게 앱 생명주기 동안 유지하므로, 연속·다중 파일 전사에서
+ * 호출마다 InferenceSession.create(수백 ms)를 반복하지 않는다. onnxruntime 세션의
+ * run()은 동시 호출에 안전하므로 파일 동시성과 무관하게 공유할 수 있다.
+ */
+const sessionCache = new Map<string, Promise<InferenceSession>>()
+
+function getEnhanceSession(modelPath: string, gpu: boolean): Promise<InferenceSession> {
+  const key = `${gpu ? 'gpu' : 'cpu'}:${modelPath}`
+  const cached = sessionCache.get(key)
+  if (cached) return cached
+  // 생성 Promise를 즉시 캐시해 동시 호출이 중복 create 하지 않게 한다(경합 방지).
+  const created = InferenceSession.create(modelPath, {
+    executionProviders: executionProviders(gpu) as InferenceSession.ExecutionProviderConfig[]
+  }).catch((err) => {
+    // 생성 실패 시 캐시를 비워 다음 호출이 다시 시도할 수 있게 한다.
+    sessionCache.delete(key)
+    throw err
+  })
+  sessionCache.set(key, created)
+  return created
+}
+
 export async function enhanceAudio(
   pcm: Float32Array,
   modelPath: string,
@@ -226,16 +250,8 @@ export async function enhanceAudio(
   signal?: AbortSignal
 ): Promise<Float32Array> {
   if (signal?.aborted) throw new CancellationError()
-  const session = await InferenceSession.create(modelPath, {
-    executionProviders: executionProviders(gpu) as InferenceSession.ExecutionProviderConfig[]
-  })
-
-  try {
-    return await runEnhance(session, pcm, onProgress, signal)
-  } finally {
-    // 세션을 즉시 해제해 GPU/VRAM과 네이티브 메모리를 회수한다(취소·정상 종료 공통).
-    await session.release().catch(() => undefined)
-  }
+  const session = await getEnhanceSession(modelPath, gpu)
+  return runEnhance(session, pcm, onProgress, signal)
 }
 
 // 오프라인 GTCRN 은 전체 스펙트로그램을 한 번에 처리한다. 다만 매우 긴 오디오에서

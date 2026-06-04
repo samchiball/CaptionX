@@ -177,6 +177,12 @@ export function registerIpcHandlers(): void {
     inFlight.get(jobId)?.abort()
   })
 
+  // 큐·보관함에서 항목을 닫거나 제거할 때 호출한다. 내보내기·후편집에 더 이상
+  // 쓰이지 않는 전사 결과(수십~수백 MB)를 메모리에서 해제해 누적을 막는다.
+  ipcMain.handle(IPC.releaseResult, async (_event, jobId: string): Promise<void> => {
+    results.delete(jobId)
+  })
+
   ipcMain.handle(
     IPC.exportSubtitle,
     async (event, jobId: string, options: ExportOptions): Promise<string | null> => {

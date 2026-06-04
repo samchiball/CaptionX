@@ -1,5 +1,5 @@
 import type { ExportOptions, ResplitOptions } from '@shared/types'
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import type { ItemStatus, QueueItem } from '../hooks/useBatch'
 import type { UiThemePreference } from '../hooks/useTheme'
 import { useTranslation } from '../i18n'
@@ -26,7 +26,9 @@ interface RowProps {
   uiTheme: UiThemePreference
 }
 
-function Row({
+// 진행률 이벤트는 초당 수회 도착하며 매번 items 배열이 새로 만들어진다. memo로 감싸
+// 콜백·uiTheme이 안정적인 상태에서 실제로 바뀐 항목(item) 행만 리렌더되게 한다.
+const Row = memo(function Row({
   item,
   onRemove,
   onCancel,
@@ -85,7 +87,7 @@ function Row({
       )}
     </li>
   )
-}
+})
 
 interface Props {
   items: QueueItem[]
