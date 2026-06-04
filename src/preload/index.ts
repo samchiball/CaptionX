@@ -47,6 +47,9 @@ const api = {
   /** 진행 중인 작업 취소 */
   cancel: (jobId: string): Promise<void> => ipcRenderer.invoke(IPC.cancel, jobId),
 
+  /** 더 이상 쓰지 않는 전사 결과를 메인 메모리에서 해제(큐 제거·보관함 항목 삭제 시). */
+  releaseResult: (jobId: string): Promise<void> => ipcRenderer.invoke(IPC.releaseResult, jobId),
+
   /** 자막 파일 내보내기 → 저장된 경로(취소 시 null) */
   exportSubtitle: (jobId: string, options: ExportOptions): Promise<string | null> =>
     ipcRenderer.invoke(IPC.exportSubtitle, jobId, options),

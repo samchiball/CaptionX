@@ -240,10 +240,15 @@ export function useBatch(): BatchApi {
   )
 
   const remove = useCallback((id: string): void => {
+    // 메인 프로세스의 전사 결과(내보내기·후편집용)도 함께 해제해 메모리 누적을 막는다.
+    void window.api.releaseResult(id)
     setItems((prev) => prev.filter((it) => it.id !== id))
   }, [])
 
   const clearDone = useCallback((): void => {
+    for (const it of itemsRef.current) {
+      if (it.status === 'done') void window.api.releaseResult(it.id)
+    }
     setItems((prev) => prev.filter((it) => it.status !== 'done'))
   }, [])
 

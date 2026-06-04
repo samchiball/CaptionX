@@ -8,6 +8,22 @@
   ],
   "project": ["src/**/*.{ts,tsx,css}", "shared/**/*.ts"],
   "ignore": ["**/*.d.ts"],
-  "ignoreDependencies": ["pretendard", "@fontsource/comic-neue", "@fontsource/gaegu"],
+  "ignoreDependencies": [
+    "pretendard",
+    "@fontsource/comic-neue",
+    "@fontsource/gaegu",
+    "@biomejs/biome",
+    "electron-builder",
+    "lefthook"
+  ],
+  "ignoreBinaries": [
+    "biome",
+    "knip",
+    "tsc",
+    "vitest",
+    "electron-vite",
+    "electron-builder",
+    "lefthook"
+  ],
   "ignoreExportsUsedInFile": true
 }
