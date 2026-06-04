@@ -82,6 +82,7 @@ export function registerMediaSchemes(): void {
     {
       scheme: MEDIA_SCHEME,
       privileges: {
+        standard: true,
         stream: true, // Range 요청 기반 seek 지원
         supportFetchAPI: true,
         bypassCSP: true,
@@ -172,6 +173,13 @@ export function fileRangeStream(
   })
 }
 
+/** `captionx-media://file/<encoded-abs-path>` URL에서 로컬 파일 경로를 복원한다. */
+export function resolveMediaFilePath(requestUrl: string): string {
+  const url = new URL(requestUrl)
+  const encoded = url.pathname.replace(/^\/+/, '')
+  return decodeURIComponent(encoded)
+}
+
 /**
  * `captionx-media://file/<encoded-abs-path>` 요청을 로컬 파일 바이트 범위로 응답한다.
  * Range 헤더를 직접 파싱해, 요청 구간을 pull 기반 스트림(fileRangeStream)으로 206
@@ -181,10 +189,7 @@ export function fileRangeStream(
  */
 export function registerMediaProtocol(): void {
   protocol.handle(MEDIA_SCHEME, async (request) => {
-    const url = new URL(request.url)
-    // captionx-media://file/<encoded> → pathname = "/<encoded>"
-    const encoded = url.pathname.replace(/^\/+/, '')
-    const filePath = decodeURIComponent(encoded)
+    const filePath = resolveMediaFilePath(request.url)
 
     // 지원 미디어 확장자만 허용해 임의 파일 접근을 차단한다.
     if (!isMediaPath(filePath)) {

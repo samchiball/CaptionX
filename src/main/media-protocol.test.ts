@@ -2,7 +2,13 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { fileRangeStream, mimeFor, readSlice, resolveRange } from './media-protocol'
+import {
+  fileRangeStream,
+  mimeFor,
+  readSlice,
+  resolveMediaFilePath,
+  resolveRange
+} from './media-protocol'
 
 /** ReadableStream을 모두 소비해 하나의 Uint8Array로 합친다. */
 async function drain(stream: ReadableStream<Uint8Array>): Promise<Uint8Array> {
@@ -76,6 +82,14 @@ describe('mimeFor', () => {
   it('알 수 없는 확장자는 octet-stream', () => {
     expect(mimeFor('file.xyz')).toBe('application/octet-stream')
     expect(mimeFor('noext')).toBe('application/octet-stream')
+  })
+})
+
+describe('resolveMediaFilePath', () => {
+  it('인코딩된 Windows 절대 경로를 원래 경로로 복원한다', () => {
+    const filePath = String.raw`C:\Users\kwk13\Videos\한글 test file.m4a`
+    const url = `captionx-media://file/${encodeURIComponent(filePath)}`
+    expect(resolveMediaFilePath(url)).toBe(filePath)
   })
 })
 

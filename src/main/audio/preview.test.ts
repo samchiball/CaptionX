@@ -12,7 +12,7 @@ vi.mock('electron', () => ({
 }))
 
 // 모킹 이후에 import해야 mock이 적용된다.
-const { preparePreviewAudio, parseAudioCodec, copyPlanFor } = await import('./preview')
+const { preparePreviewAudio } = await import('./preview')
 
 const CACHE = join(USER_DATA, 'preview-cache')
 
@@ -29,8 +29,8 @@ async function makeSampleAudio(path: string): Promise<void> {
   })
 }
 
-/** 브라우저 호환 코덱(AAC) m4a 샘플을 생성한다(stream copy 경로 검증용). */
-async function makeAacAudio(path: string): Promise<void> {
+/** Matroska 컨테이너 샘플을 생성한다. */
+async function makeMkvAudio(path: string): Promise<void> {
   await new Promise<void>((resolve, reject) => {
     const proc = spawn(
       resolveFfmpegPath(),
@@ -44,13 +44,15 @@ async function makeAacAudio(path: string): Promise<void> {
         '-i',
         'sine=duration=1',
         '-c:a',
-        'aac',
+        'pcm_s16le',
+        '-f',
+        'matroska',
         path
       ],
       { stdio: ['ignore', 'ignore', 'ignore'] }
     )
     proc.on('error', reject)
-    proc.on('close', (c) => (c === 0 ? resolve() : reject(new Error(`aac sample gen failed ${c}`))))
+    proc.on('close', (c) => (c === 0 ? resolve() : reject(new Error(`mkv sample gen failed ${c}`))))
   })
 }
 
@@ -100,45 +102,12 @@ describe('preparePreviewAudio', () => {
     expect(files.length).toBe(1) // 앞 테스트의 정상 sample 캐시 1개만 존재
   }, 30000)
 
-  it('이미 브라우저 호환 코덱(AAC)이면 재인코딩 없이 copy로 추출한다', async () => {
-    const aac = join(USER_DATA, 'sample-aac.m4a')
-    await makeAacAudio(aac)
-    const out = await preparePreviewAudio(aac)
+  it('MKV 컨테이너도 안정적인 m4a 캐시로 추출한다', async () => {
+    const mkv = join(USER_DATA, 'sample.mkv')
+    await makeMkvAudio(mkv)
+    const out = await preparePreviewAudio(mkv)
     expect(out.endsWith('.m4a')).toBe(true)
     expect((await stat(out)).size).toBeGreaterThan(0)
     expect(await partFiles()).toHaveLength(0)
   }, 30000)
-})
-
-describe('parseAudioCodec', () => {
-  it('첫 오디오 스트림의 코덱명을 소문자로 파싱한다', () => {
-    const stderr = [
-      "Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'a.mp4':",
-      '  Stream #0:0(und): Video: h264 (High) (avc1 / 0x31637661), yuv420p',
-      '  Stream #0:1(eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo'
-    ].join('\n')
-    expect(parseAudioCodec(stderr)).toBe('aac')
-  })
-
-  it('오디오 스트림이 없으면 null', () => {
-    expect(parseAudioCodec('  Stream #0:0: Video: h264')).toBeNull()
-    expect(parseAudioCodec('')).toBeNull()
-  })
-})
-
-describe('copyPlanFor', () => {
-  it('브라우저 호환 코덱은 copy 계획을 돌려준다', () => {
-    expect(copyPlanFor('aac')?.ext).toBe('m4a')
-    expect(copyPlanFor('mp3')?.ext).toBe('mp3')
-    expect(copyPlanFor('flac')?.ext).toBe('flac')
-    expect(copyPlanFor('opus')?.ext).toBe('ogg')
-    expect(copyPlanFor('vorbis')?.ext).toBe('ogg')
-    expect(copyPlanFor('aac')?.args).toContain('copy')
-  })
-
-  it('비호환 코덱/미상은 null(재인코딩 폴백)', () => {
-    expect(copyPlanFor('pcm_s16le')).toBeNull()
-    expect(copyPlanFor('ac3')).toBeNull()
-    expect(copyPlanFor(null)).toBeNull()
-  })
 })
