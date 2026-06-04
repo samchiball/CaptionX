@@ -6,7 +6,7 @@
 
 [![React](https://img.shields.io/badge/React-19-blue?logo=react)](https://react.dev) [![Electron](https://img.shields.io/badge/Electron-34-478aef?logo=electron)](https://www.electronjs.org) [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)](https://www.typescriptlang.org) [![Vite](https://img.shields.io/badge/Vite-6-bd34fe?logo=vite)](https://vite.dev) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 
-[English](docs/README.en.md) | [日本語](docs/README.ja.md) | [简体中文](docs/README.zh.md)
+[English](docs/README.en-us.md) | [日本語](docs/README.ja-jp.md) | [简体中文](docs/README.zh-hans.md) | [繁體中文](docs/README.zh-hant.md)
 
 </div>
 
