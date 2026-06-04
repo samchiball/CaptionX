@@ -74,7 +74,8 @@ export async function runTranscription(
           : 0
       onProgress({ stage: 'decode', pct, message: 'progress.message.decoding' })
     },
-    signal
+    signal,
+    options.audioTrackIndex
   )
   throwIfCanceled(signal)
 

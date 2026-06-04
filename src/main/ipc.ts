@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { basename, extname } from 'node:path'
-import type { HardwareInfo } from '@shared/types'
+import type { AudioTrack, HardwareInfo } from '@shared/types'
 import {
   type DataPathKey,
   type DataPaths,
@@ -15,6 +15,7 @@ import {
 } from '@shared/types'
 import { app, BrowserWindow, dialog, type IpcMainInvokeEvent, ipcMain, shell } from 'electron'
 import { preparePreviewAudio, cacheDir as previewCacheDir } from './audio/preview'
+import { probeAudioTracks } from './audio/tracks'
 import { resplitResult } from './edit/resplit'
 import { extensionFor, serialize } from './export/subtitle'
 import { deleteEntry, getEntry, historyDir, listEntries, saveEntry } from './history/store'
@@ -174,7 +175,15 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle(
     IPC.prepareMedia,
-    async (_event, filePath: string): Promise<string> => preparePreviewAudio(filePath)
+    async (_event, filePath: string, trackIndex?: number): Promise<string> =>
+      preparePreviewAudio(filePath, trackIndex)
+  )
+
+  // 멀티트랙 영상의 오디오 트랙 목록을 조사한다(전사·모니터링 트랙 선택용).
+  // 오디오가 없거나 단일 트랙이면 그에 맞는 길이의 배열을 그대로 반환한다.
+  ipcMain.handle(
+    IPC.probeTracks,
+    async (_event, filePath: string): Promise<AudioTrack[]> => probeAudioTracks(filePath)
   )
 
   ipcMain.handle(

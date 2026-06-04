@@ -19,7 +19,9 @@ function makeItem(id: string, status: ItemStatus): QueueItem {
     progress: null,
     result: null,
     error: null,
-    startedAt: null
+    startedAt: null,
+    tracks: null,
+    trackIndex: 0
   }
 }
 

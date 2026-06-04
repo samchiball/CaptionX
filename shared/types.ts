@@ -22,6 +22,26 @@ export interface TranscriptResult {
   segments: Segment[]
 }
 
+/**
+ * 입력 미디어의 단일 오디오 트랙(스트림) 메타데이터.
+ * 멀티트랙 영상에서 사용자가 전사·모니터링할 트랙을 고르는 데 쓴다.
+ */
+export interface AudioTrack {
+  /**
+   * 오디오 스트림 순번(0부터). ffmpeg `-map 0:a:{index}` 에 그대로 쓰는
+   * "오디오 트랙들 중 몇 번째"이며, 컨테이너 전역 스트림 번호(0:N)와는 다르다.
+   */
+  index: number
+  /** 코덱 이름(예: aac, ac3, opus). 미상이면 빈 문자열. */
+  codec: string
+  /** 채널 수(1=모노, 2=스테레오). 미상이면 0. */
+  channels: number
+  /** 트랙 언어 태그(예: eng, kor). 메타데이터에 없으면 미정의. */
+  language?: string
+  /** 트랙 제목 태그(예: 'Director Commentary'). 메타데이터에 없으면 미정의. */
+  title?: string
+}
+
 export type JobStage = 'decode' | 'transcribe' | 'align' | 'export'
 
 /**
@@ -46,6 +66,11 @@ export interface JobProgress {
 export interface TranscribeOptions {
   /** 입력 미디어 절대 경로 */
   filePath: string
+  /**
+   * 전사할 오디오 트랙 순번(0부터, AudioTrack.index). 멀티트랙 영상에서 특정
+   * 트랙을 고를 때 쓴다. 미지정이면 ffmpeg 기본 트랙(보통 0:a:0)을 쓴다.
+   */
+  audioTrackIndex?: number
   /** Whisper 모델 이름 (예: 'base', 'small', 'medium', 'large-v3') */
   model: string
   /** 언어 코드 (예: 'ko', 'en'), 미지정 시 자동 감지 */
@@ -132,6 +157,7 @@ export const IPC = {
   exportSubtitle: 'captionx:export',
   progress: 'captionx:progress',
   prepareMedia: 'captionx:prepare-media',
+  probeTracks: 'captionx:probe-tracks',
   resplit: 'captionx:resplit',
   getHardwareInfo: 'captionx:get-hardware-info',
   historyList: 'captionx:history-list',

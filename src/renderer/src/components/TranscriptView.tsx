@@ -1,8 +1,10 @@
-import type { Segment, TranscriptResult, Word } from '@shared/types'
+import type { AudioTrack, Segment, TranscriptResult, Word } from '@shared/types'
 import { memo, useEffect, useRef, useState } from 'react'
 import { useMediaSync } from '../hooks/useMediaSync'
 import { useTranslation } from '../i18n'
+import { isMultiTrack } from '../tracks'
 import { MediaPlayer } from './MediaPlayer'
+import { TrackSelector } from './TrackSelector'
 
 function fmt(sec: number): string {
   const m = Math.floor(sec / 60)
@@ -14,6 +16,10 @@ interface Props {
   result: TranscriptResult
   /** 원본 미디어 절대 경로(재생용) */
   filePath: string
+  /** 파일의 오디오 트랙 목록(멀티트랙이면 모니터링 트랙 전환 UI를 띄운다). */
+  tracks?: AudioTrack[] | null
+  /** 모니터링 기본 트랙(보통 전사에 쓴 트랙). 멀티트랙일 때만 의미가 있다. */
+  initialTrackIndex?: number
 }
 
 const WordChip = memo(function WordChip({
@@ -95,9 +101,17 @@ const SegmentRow = memo(function SegmentRow({
   )
 })
 
-export function TranscriptView({ result, filePath }: Props): React.JSX.Element {
+export function TranscriptView({
+  result,
+  filePath,
+  tracks = null,
+  initialTrackIndex = 0
+}: Props): React.JSX.Element {
   const t = useTranslation()
   const seekHereLabel = t('transcript.seekHere')
+  // 모니터링 대상 트랙. 멀티트랙이면 전사에 쓴 트랙으로 시작하고 자유롭게 전환한다.
+  const multiTrack = isMultiTrack(tracks)
+  const [monitorTrack, setMonitorTrack] = useState(initialTrackIndex)
   const { mediaRef, activeSegment, activeWord, seekTo } = useMediaSync(result.segments)
   const activeRef = useRef<HTMLDivElement | null>(null)
   // 활성 세그먼트에만 붙는 안정적인 콜백 ref. memo된 SegmentRow의 props 동일성을
@@ -113,6 +127,7 @@ export function TranscriptView({ result, filePath }: Props): React.JSX.Element {
   }, [activeSegment])
 
   // 재생용 오디오를 추출(브라우저 호환)하고 그 경로로 소스를 만든다.
+  // 멀티트랙이면 선택한 모니터링 트랙만 추출해, 트랙 전환 시 다시 준비한다.
   const [src, setSrc] = useState<string | null>(null)
   const [status, setStatus] = useState<'preparing' | 'ready' | 'error'>('preparing')
   useEffect(() => {
@@ -120,7 +135,7 @@ export function TranscriptView({ result, filePath }: Props): React.JSX.Element {
     setStatus('preparing')
     setSrc(null)
     window.api
-      .prepareMedia(filePath)
+      .prepareMedia(filePath, multiTrack ? monitorTrack : undefined)
       .then((audioPath) => {
         if (cancelled) return
         setSrc(window.api.mediaUrl(audioPath))
@@ -132,10 +147,18 @@ export function TranscriptView({ result, filePath }: Props): React.JSX.Element {
     return () => {
       cancelled = true
     }
-  }, [filePath])
+  }, [filePath, multiTrack, monitorTrack])
 
   return (
     <div className="transcript">
+      {multiTrack && tracks && (
+        <TrackSelector
+          tracks={tracks}
+          value={monitorTrack}
+          onChange={setMonitorTrack}
+          labelKey="track.monitor"
+        />
+      )}
       <MediaPlayer ref={mediaRef} src={src} status={status} />
       <div className="transcript__meta">
         {t('transcript.language', { language: result.language })}

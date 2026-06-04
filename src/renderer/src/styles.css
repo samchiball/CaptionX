@@ -699,6 +699,36 @@ button:disabled {
   gap: 10px;
 }
 
+/* 멀티 오디오 트랙 선택·모니터링 드롭다운 */
+.track-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.track-selector__label {
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.track-selector__select {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.track-selector__select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .qitem__badge {
   font-size: 11px;
   font-weight: 700;

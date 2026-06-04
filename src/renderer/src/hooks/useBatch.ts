@@ -1,4 +1,5 @@
 import type {
+  AudioTrack,
   ExportOptions,
   JobProgress,
   ResplitOptions,
@@ -33,6 +34,13 @@ export interface QueueItem {
   error: string | null
   /** 처리 시작 시각(epoch ms). 경과 시간·ETA 계산용. 미시작이면 null. */
   startedAt: number | null
+  /**
+   * 파일의 오디오 트랙 목록. null=아직 조사 전, []=오디오 없음/조사 실패.
+   * 길이가 2 이상이면 멀티트랙이므로 사용자가 전사·모니터링 트랙을 고를 수 있다.
+   */
+  tracks: AudioTrack[] | null
+  /** 전사·모니터링에 쓸 선택 트랙 순번(0부터). 멀티트랙일 때만 의미가 있다. */
+  trackIndex: number
 }
 
 export type RunSettings = Omit<TranscribeOptions, 'filePath'> & {
@@ -93,6 +101,8 @@ export interface BatchApi {
   /** 처리 중인 작업이 있는지 */
   busy: boolean
   addPaths: (paths: string[]) => void
+  /** 멀티트랙 항목의 전사·모니터링 대상 트랙을 바꾼다. */
+  setTrack: (id: string, trackIndex: number) => void
   remove: (id: string) => void
   clearDone: () => void
   runAll: (settings: RunSettings) => Promise<void>
@@ -165,9 +175,12 @@ export function useBatch(): BatchApi {
         startedAt: Date.now()
       })
       try {
+        // 멀티트랙 파일만 트랙 순번을 넘긴다. 단일/미상 트랙은 ffmpeg 기본 선택에 맡긴다.
+        const multiTrack = (item.tracks?.length ?? 0) > 1
         const result = await window.api.transcribe(item.id, {
           filePath: item.filePath,
-          ...settings
+          ...settings,
+          audioTrackIndex: multiTrack ? item.trackIndex : undefined
         })
         patch(item.id, { status: 'done', result, progress: null })
       } catch (err) {
@@ -226,17 +239,34 @@ export function useBatch(): BatchApi {
           progress: null,
           result: null,
           error: null,
-          startedAt: null
+          startedAt: null,
+          tracks: null,
+          trackIndex: 0
         }))
       if (next.length === 0) return
       const merged = [...itemsRef.current, ...next]
       // itemsRef 를 즉시 갱신해, 실행 중이면 ensureWorkers 가 새 항목을 바로 인식하도록 한다.
       itemsRef.current = merged
       setItems(merged)
+      // 각 신규 파일의 오디오 트랙을 백그라운드로 조사한다. 멀티트랙이면 선택 UI가 뜬다.
+      // 조사 실패는 단일 트랙처럼 취급(빈 배열)해 전사 흐름을 막지 않는다.
+      for (const it of next) {
+        window.api
+          .probeTracks(it.filePath)
+          .then((tracks) => patch(it.id, { tracks }))
+          .catch(() => patch(it.id, { tracks: [] }))
+      }
       // 실행 세션이 활성이면 새로 추가된 파일을 즉시 큐에 태워 처리한다.
       ensureWorkers()
     },
-    [ensureWorkers]
+    [ensureWorkers, patch]
+  )
+
+  const setTrack = useCallback(
+    (id: string, trackIndex: number): void => {
+      patch(id, { trackIndex })
+    },
+    [patch]
   )
 
   const remove = useCallback((id: string): void => {
@@ -326,6 +356,7 @@ export function useBatch(): BatchApi {
     items,
     busy,
     addPaths,
+    setTrack,
     remove,
     clearDone,
     runAll,

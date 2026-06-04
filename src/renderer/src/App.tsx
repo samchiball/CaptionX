@@ -33,6 +33,7 @@ function App(): React.JSX.Element {
     items,
     busy,
     addPaths,
+    setTrack,
     remove,
     clearDone,
     runAll,
@@ -383,6 +384,7 @@ function App(): React.JSX.Element {
             onCancel={cancel}
             onExport={exportItem}
             onResplit={resplitItem}
+            onSetTrack={setTrack}
             uiTheme={theme.uiTheme}
           />
         </>

@@ -102,6 +102,14 @@ const ko = {
   'queue.error': '오류: {message}',
   'queue.canceled': '작업이 취소되었습니다.',
 
+  // 멀티 오디오 트랙 선택·모니터링
+  'track.select': '전사 트랙',
+  'track.monitor': '모니터링 트랙',
+  'track.name': '트랙 {index}',
+  'track.mono': '모노',
+  'track.stereo': '스테레오',
+  'track.channels': '{count}채널',
+
   // 내보내기 바
   'export.format': '포맷',
   'export.includeWords': '단어 타임스탬프 포함',
@@ -276,6 +284,13 @@ const en: Messages = {
   'queue.error': 'Error: {message}',
   'queue.canceled': 'The job was canceled.',
 
+  'track.select': 'Transcription track',
+  'track.monitor': 'Monitoring track',
+  'track.name': 'Track {index}',
+  'track.mono': 'Mono',
+  'track.stereo': 'Stereo',
+  'track.channels': '{count} ch',
+
   'export.format': 'Format',
   'export.includeWords': 'Include word timestamps',
   'export.run': 'Export subtitles',
@@ -439,6 +454,13 @@ const ja: Messages = {
   'queue.error': 'エラー: {message}',
   'queue.canceled': 'ジョブはキャンセルされました。',
 
+  'track.select': '文字起こしトラック',
+  'track.monitor': 'モニタリングトラック',
+  'track.name': 'トラック {index}',
+  'track.mono': 'モノラル',
+  'track.stereo': 'ステレオ',
+  'track.channels': '{count}ch',
+
   'export.format': 'フォーマット',
   'export.includeWords': '単語タイムスタンプを含める',
   'export.run': '字幕を書き出す',
@@ -600,6 +622,13 @@ const es: Messages = {
   'queue.removeAria': 'Eliminar',
   'queue.error': 'Error: {message}',
   'queue.canceled': 'El trabajo fue cancelado.',
+
+  'track.select': 'Pista de transcripción',
+  'track.monitor': 'Pista de monitoreo',
+  'track.name': 'Pista {index}',
+  'track.mono': 'Mono',
+  'track.stereo': 'Estéreo',
+  'track.channels': '{count} ch',
 
   'export.format': 'Formato',
   'export.includeWords': 'Incluir marcas de tiempo por palabra',
@@ -767,6 +796,13 @@ const fr: Messages = {
   'queue.error': 'Erreur : {message}',
   'queue.canceled': 'La tâche a été annulée.',
 
+  'track.select': 'Piste de transcription',
+  'track.monitor': 'Piste de monitoring',
+  'track.name': 'Piste {index}',
+  'track.mono': 'Mono',
+  'track.stereo': 'Stéréo',
+  'track.channels': '{count} ch',
+
   'export.format': 'Format',
   'export.includeWords': 'Inclure les horodatages par mot',
   'export.run': 'Exporter les sous-titres',
@@ -932,6 +968,13 @@ const de: Messages = {
   'queue.error': 'Fehler: {message}',
   'queue.canceled': 'Die Aufgabe wurde abgebrochen.',
 
+  'track.select': 'Transkriptionsspur',
+  'track.monitor': 'Monitoring-Spur',
+  'track.name': 'Spur {index}',
+  'track.mono': 'Mono',
+  'track.stereo': 'Stereo',
+  'track.channels': '{count} Kanäle',
+
   'export.format': 'Format',
   'export.includeWords': 'Wort-Zeitstempel einschließen',
   'export.run': 'Untertitel exportieren',
@@ -1093,6 +1136,13 @@ const zhHans: Messages = {
   'queue.error': '错误：{message}',
   'queue.canceled': '任务已取消。',
 
+  'track.select': '转写音轨',
+  'track.monitor': '监听音轨',
+  'track.name': '音轨 {index}',
+  'track.mono': '单声道',
+  'track.stereo': '立体声',
+  'track.channels': '{count} 声道',
+
   'export.format': '格式',
   'export.includeWords': '包含单词时间戳',
   'export.run': '导出字幕',
@@ -1249,6 +1299,13 @@ const zhHant: Messages = {
   'queue.removeAria': '移除',
   'queue.error': '錯誤：{message}',
   'queue.canceled': '工作已取消。',
+
+  'track.select': '轉寫音軌',
+  'track.monitor': '監聽音軌',
+  'track.name': '音軌 {index}',
+  'track.mono': '單聲道',
+  'track.stereo': '立體聲',
+  'track.channels': '{count} 聲道',
 
   'export.format': '格式',
   'export.includeWords': '包含單詞時間戳',

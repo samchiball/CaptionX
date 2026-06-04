@@ -43,7 +43,8 @@ export function parseDurationSec(stderr: string): number | null {
 export async function decodeToPcm(
   filePath: string,
   onProgress?: (p: DecodeProgress) => void,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  trackIndex?: number
 ): Promise<Float32Array> {
   if (signal?.aborted) throw new CancellationError()
 
@@ -53,6 +54,8 @@ export async function decodeToPcm(
       '-hide_banner',
       '-i',
       filePath,
+      // 멀티트랙 영상에서 특정 오디오 트랙만 디코드한다(미지정 시 ffmpeg 기본 트랙).
+      ...(trackIndex !== undefined ? ['-map', `0:a:${trackIndex}`] : []),
       '-vn', // 비디오 무시
       '-ac',
       '1', // mono

@@ -1,5 +1,6 @@
 import { electronAPI } from '@electron-toolkit/preload'
 import {
+  type AudioTrack,
   type DataPathKey,
   type DataPaths,
   type ExportOptions,
@@ -37,8 +38,15 @@ const api = {
    * 재생용 오디오를 브라우저 호환 형식(m4a)으로 추출하고 그 절대 경로를 받는다.
    * 원본 영상 코덱이 디코드 불가여도 타이밍 검증용 오디오 재생을 보장한다.
    */
-  prepareMedia: (filePath: string): Promise<string> =>
-    ipcRenderer.invoke(IPC.prepareMedia, filePath),
+  prepareMedia: (filePath: string, trackIndex?: number): Promise<string> =>
+    ipcRenderer.invoke(IPC.prepareMedia, filePath, trackIndex),
+
+  /**
+   * 멀티트랙 영상의 오디오 트랙 목록을 조사한다(전사·모니터링 트랙 선택용).
+   * 오디오가 1개 이하면 길이 0~1의 배열을 반환한다.
+   */
+  probeTracks: (filePath: string): Promise<AudioTrack[]> =>
+    ipcRenderer.invoke(IPC.probeTracks, filePath),
 
   /** 전사 시작. jobId는 호출자가 생성해 전달(진행률 매칭용). */
   transcribe: (jobId: string, options: TranscribeOptions): Promise<TranscriptResult> =>
