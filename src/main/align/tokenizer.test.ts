@@ -48,4 +48,31 @@ describe('tokenize', () => {
     expect(tokens).toEqual([1, 2, 3])
     expect(wordOfToken).toEqual([0, 0, 1])
   })
+
+  it('라틴 문자만 있는 vocab(MMS 등)에서 한국어 텍스트를 로마자 변환하여 정상 토큰화 및 매핑한다', () => {
+    // 안녕 -> annyeong
+    // a(1), n(2), y(3), e(4), o(5), g(6)
+    const vocab: Vocab = { '<pad>': 0, a: 1, n: 2, y: 3, e: 4, o: 5, g: 6 }
+    const { tokens, wordOfToken, words } = tokenize('안녕', vocab)
+    expect(words).toEqual(['안녕'])
+    expect(tokens).toEqual([1, 2, 2, 3, 4, 5, 2, 6]) // a n n y e o n g
+    expect(wordOfToken).toEqual([0, 0, 0, 0, 0, 0, 0, 0])
+  })
+
+  it('라틴 문자만 있는 vocab(MMS 등)에서 일본어 가나 텍스트를 로마자 변환하여 정상 토큰화 및 매핑한다', () => {
+    // きゃ -> kya (k:3, y:1, a:2)
+    const vocab: Vocab = { '<pad>': 0, y: 1, a: 2, k: 3 }
+    const { tokens, wordOfToken, words } = tokenize('きゃ', vocab)
+    expect(words).toEqual(['きゃ'])
+    expect(tokens).toEqual([3, 1, 2]) // k y a
+    expect(wordOfToken).toEqual([0, 0, 0])
+  })
+
+  it('디아크리틱(악센트)이 포함된 라틴 텍스트를 일반 ASCII로 정규화하여 토큰화한다', () => {
+    // Élément -> element
+    const vocab: Vocab = { '<pad>': 0, e: 1, l: 2, m: 3, n: 4, t: 5 }
+    const { tokens, words } = tokenize('Élément', vocab)
+    expect(words).toEqual(['Élément'])
+    expect(tokens).toEqual([1, 2, 1, 3, 1, 4, 5]) // e l e m e n t
+  })
 })

@@ -1,6 +1,8 @@
 // wav2vec2 CTC 문자 단위 토크나이저.
 // vocab: 문자→id 매핑. 단어 구분은 delimiter 토큰(보통 '|')으로 표현한다.
 
+import { romanizeWord } from './romanize'
+
 export type Vocab = Record<string, number>
 
 export interface TokenizedTranscript {
@@ -57,6 +59,22 @@ function charToIds(ch: string, vocab: Vocab, upper: boolean, lower: boolean): nu
 }
 
 /**
+ * 어휘 사전(vocab)이 라틴 문자만 지원하는지 판단한다.
+ * 비ASCII 문자(코드포인트 > 127)가 없으면 MMS와 같은 라틴 전용 모델로 간주하여 로마자 표기로 변환한다.
+ */
+function shouldRomanize(vocab: Vocab): boolean {
+  for (const key of Object.keys(vocab)) {
+    if (key.length === 1) {
+      const code = key.charCodeAt(0)
+      if (code > 127) {
+        return false
+      }
+    }
+  }
+  return true
+}
+
+/**
  * 텍스트를 vocab 기준 문자 토큰열로 변환한다.
  * - 공백으로 단어를 나눈다.
  * - 각 문자를 vocab id로 매핑(대문자 vocab이면 대문자화, 음절이 없으면 자모로 분해).
@@ -68,19 +86,21 @@ export function tokenize(text: string, vocab: Vocab, delimiter = '|'): Tokenized
   const upper = delimiter in vocab && 'A' in vocab // 대문자 vocab 휴리스틱
   const lower = 'a' in vocab // 소문자 vocab 휴리스틱
   const rawWords = text.trim().split(/\s+/).filter(Boolean)
+  const isLatinOnly = shouldRomanize(vocab)
 
   const tokens: number[] = []
   const wordOfToken: number[] = []
   const words: string[] = []
 
   rawWords.forEach((word) => {
+    const targetWord = isLatinOnly ? romanizeWord(word) : word
     const charIds: number[] = []
-    for (const ch of word) {
+    for (const ch of targetWord) {
       charIds.push(...charToIds(ch, vocab, upper, lower))
     }
     if (charIds.length === 0) return // 정렬 가능한 문자가 없는 단어는 제외
     const wordIndex = words.length
-    words.push(word)
+    words.push(word) // 원본 단어 보존 (정렬 타임스탬프가 원본 단어에 연결되도록 함)
     if (tokens.length > 0 && delimiterId !== undefined) {
       tokens.push(delimiterId)
       wordOfToken.push(-1)
