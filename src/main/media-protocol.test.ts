@@ -1,14 +1,18 @@
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import {
-  fileRangeStream,
-  mimeFor,
-  readSlice,
-  resolveMediaFilePath,
-  resolveRange
-} from './media-protocol'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+
+vi.mock('electron', () => ({
+  protocol: {
+    handle: vi.fn(),
+    registerSchemesAsPrivileged: vi.fn()
+  }
+}))
+
+const { fileRangeStream, mimeFor, readSlice, resolveMediaFilePath, resolveRange } = await import(
+  './media-protocol'
+)
 
 /** ReadableStream을 모두 소비해 하나의 Uint8Array로 합친다. */
 async function drain(stream: ReadableStream<Uint8Array>): Promise<Uint8Array> {
