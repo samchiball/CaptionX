@@ -356,7 +356,9 @@ function App(): React.JSX.Element {
                     <span>{t('hardware.freeVram')}</span>
                     <span className="hardware-status__value">
                       {hardware.gpu
-                        ? `${(hardware.gpu.free / 1024).toFixed(1)} / ${(hardware.gpu.total / 1024).toFixed(0)} GB (${hardware.gpu.name})`
+                        ? hardware.gpu.total > 0
+                          ? `${(hardware.gpu.free / 1024).toFixed(1)} / ${(hardware.gpu.total / 1024).toFixed(0)} GB (${hardware.gpu.name})`
+                          : hardware.gpu.name
                         : t('hardware.gpuUnavailable')}
                     </span>
                   </div>
