@@ -84,17 +84,44 @@ function findActive(items: ReadonlyArray<{ start: number; end: number }>, time: 
  * 재생 중에는 requestAnimationFrame, 그 외에는 timeupdate/seeked 이벤트로 갱신한다.
  */
 export function useMediaSync(segments: Segment[]): MediaSync {
-  const [currentTime, setCurrentTime] = useState(0)
+  // 활성 세그먼트/단어 인덱스만 상태로 둔다. 재생 시각(currentTime)은 ref로만
+  // 추적해 매 프레임 setState로 인한 전체 재렌더를 피한다. 활성 인덱스는 초당
+  // 몇 번만 바뀌므로, 인덱스가 실제로 바뀔 때만 재렌더가 발생한다.
+  const [active, setActive] = useState<{ segment: number; word: number }>({
+    segment: -1,
+    word: -1
+  })
+  const currentTimeRef = useRef(0)
+  // sample 콜백이 항상 최신 segments를 보면서도, segments 변경마다 el 리스너를
+  // 재설치하지 않도록 ref로 들고 있는다.
+  const segmentsRef = useRef(segments)
+  segmentsRef.current = segments
   // 미디어 엘리먼트는 오디오 준비 후 뒤늦게 마운트되므로, 안정적인 RefObject 대신
   // 콜백 ref로 추적해 엘리먼트가 실제로 나타나면 effect가 재실행되도록 한다.
   const [el, setEl] = useState<HTMLMediaElement | null>(null)
   const mediaRef = useCallback((node: HTMLMediaElement | null) => setEl(node), [])
   const rafRef = useRef<number | null>(null)
 
+  // 현재 시각으로 활성 인덱스를 계산해, 바뀌었을 때만 상태를 갱신한다.
+  const syncActive = useCallback((time: number): void => {
+    currentTimeRef.current = time
+    const segs = segmentsRef.current
+    const segment = findActive(segs, time)
+    const word = segment >= 0 ? findActive(segs[segment].words, time) : -1
+    setActive((prev) => (prev.segment === segment && prev.word === word ? prev : { segment, word }))
+  }, [])
+
+  // segments가 교체되면(새 전사 결과) 현재 시각 기준으로 활성 인덱스를 재계산한다.
+  // syncActive는 안정적(useCallback, 빈 deps)이라 의존성에서 제외한다.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: syncActive는 불변
+  useEffect(() => {
+    syncActive(currentTimeRef.current)
+  }, [segments])
+
   useEffect(() => {
     if (!el) return
 
-    const sample = (): void => setCurrentTime(el.currentTime)
+    const sample = (): void => syncActive(el.currentTime)
 
     const loop = (): void => {
       sample()
@@ -129,7 +156,7 @@ export function useMediaSync(segments: Segment[]): MediaSync {
       el.removeEventListener('timeupdate', sample)
       el.removeEventListener('loadedmetadata', sample)
     }
-  }, [el])
+  }, [el, syncActive])
 
   const seekTo = useCallback(
     (sec: number): void => {
@@ -140,16 +167,18 @@ export function useMediaSync(segments: Segment[]): MediaSync {
         /* 사용자 제스처 없이 자동재생 차단 시 무시 */
       })
       seekElement(el, sec)
-      setCurrentTime(sec)
+      syncActive(sec)
     },
-    [el]
+    [el, syncActive]
   )
 
-  const activeSegment = findActive(segments, currentTime)
-  const activeWord =
-    activeSegment >= 0 ? findActive(segments[activeSegment].words, currentTime) : -1
-
-  return { mediaRef, currentTime, activeSegment, activeWord, seekTo }
+  return {
+    mediaRef,
+    currentTime: currentTimeRef.current,
+    activeSegment: active.segment,
+    activeWord: active.word,
+    seekTo
+  }
 }
 
 export { findActive }
