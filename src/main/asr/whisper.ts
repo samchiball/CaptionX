@@ -1,8 +1,26 @@
 import type { WhisperOptions } from '@kutalia/whisper-node-addon'
 import whisper from '@kutalia/whisper-node-addon'
 import type { Segment, TranscriptResult } from '@shared/types'
+import { throwIfCanceled } from '../cancellation'
 import { parseTimecode } from '../export/timecode'
 import { type DownloadProgress, ensureVadModel, ensureWhisperModel } from '../models/manager'
+
+class Mutex {
+  private queue: Promise<void> = Promise.resolve()
+
+  async acquire(): Promise<() => void> {
+    let release: () => void = () => {}
+    const nextQueue = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    const currentQueue = this.queue
+    this.queue = nextQueue
+    await currentQueue
+    return release
+  }
+}
+
+const whisperMutex = new Mutex()
 
 export interface WhisperParams {
   model: string
@@ -144,17 +162,27 @@ export function buildWhisperOptions(
  */
 export async function transcribe(
   pcm: Float32Array,
-  params: WhisperParams
+  params: WhisperParams,
+  signal?: AbortSignal
 ): Promise<TranscriptResult> {
   const modelPath = await ensureWhisperModel(params.model, params.onModelProgress)
   const vadModelPath = params.vad ? await ensureVadModel() : undefined
-  const result = (await whisper.transcribe(
-    buildWhisperOptions(pcm, modelPath, params, {}, vadModelPath)
-  )) as WhisperResult
-  return {
-    // language='auto'면 네이티브가 감지한 언어 코드를 돌려준다. 지정 언어가 있으면 그대로 유지.
-    language: normalizeLanguage(params.language) ?? result.language ?? 'auto',
-    segments: parseTranscription(result.transcription)
+
+  throwIfCanceled(signal)
+
+  const release = await whisperMutex.acquire()
+  try {
+    throwIfCanceled(signal)
+    const result = (await whisper.transcribe(
+      buildWhisperOptions(pcm, modelPath, params, {}, vadModelPath)
+    )) as WhisperResult
+    return {
+      // language='auto'면 네이티브가 감지한 언어 코드를 돌려준다. 지정 언어가 있으면 그대로 유지.
+      language: normalizeLanguage(params.language) ?? result.language ?? 'auto',
+      segments: parseTranscription(result.transcription)
+    }
+  } finally {
+    release()
   }
 }
 
