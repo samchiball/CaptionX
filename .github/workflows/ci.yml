@@ -1,20 +1,31 @@
-name: CI
+name: CI/CD
 
-# PR·push마다 3개 OS에서 품질 검사 + 패키징이 깨지지 않는지 검증한다.
-# (릴리스는 release.yml이 태그에서 담당. 여기서는 산출물을 아티팩트로만 올린다.)
+# 하나의 워크플로우 안에서 분기한다.
+#  - 모든 push/PR: 품질 검사 + 3개 OS 빌드
+#  - main push 시 package.json 버전이 최신 릴리즈보다 높으면 → 릴리즈 자동 배포
+#  - 그 외에는 산출물을 아티팩트로만 업로드
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      release:
+        description: '버전 비교 없이 강제로 릴리즈 배포'
+        type: boolean
+        default: false
 
 # 같은 ref에서 중복 실행되면 이전 것을 취소한다.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: cicd-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: write # 릴리즈 생성/업로드에 필요
+
 jobs:
-  # 린트/포맷/타입체크/데드코드/테스트는 OS 무관하므로 1회만 돈다.
+  # 1) 린트/포맷/타입체크/데드코드/테스트는 OS 무관하므로 1회만 돈다.
   check:
     runs-on: ubuntu-latest
     steps:
@@ -26,20 +37,79 @@ jobs:
       - run: npm ci
       - run: npm run check
 
-  # 네이티브 의존성(ffmpeg-static, whisper-addon, onnxruntime-node)은 플랫폼별
-  # prebuilt라, 각 타깃 OS의 네이티브 러너에서 빌드해야 한다. ffmpeg-static은 설치
-  # 시점에 현재 OS 바이너리만 받으므로 cross-compile 불가.
-  build:
+  # 2) 릴리즈를 배포할지 결정한다 (버전 게이트).
+  gate:
     needs: check
+    runs-on: ubuntu-latest
+    outputs:
+      release: ${{ steps.decide.outputs.release }}
+      tag: ${{ steps.version.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Read package.json version
+        id: version
+        run: |
+          VERSION=$(node -e "console.log(require('./package.json').version)")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Decide whether to release
+        id: decide
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          EVENT="${{ github.event_name }}"
+
+          # PR 에서는 절대 릴리즈하지 않는다.
+          if [ "$EVENT" = "pull_request" ]; then
+            echo "release=false" >> $GITHUB_OUTPUT
+            echo "PR — no release."; exit 0
+          fi
+
+          # 수동 실행에서 release=true 면 버전 비교 없이 강제 배포.
+          if [ "$EVENT" = "workflow_dispatch" ] && [ "${{ inputs.release }}" = "true" ]; then
+            echo "release=true" >> $GITHUB_OUTPUT
+            echo "Manual dispatch — forced release."; exit 0
+          fi
+
+          # main push: package.json 버전이 최신 릴리즈보다 높을 때만 배포.
+          CURRENT="${{ steps.version.outputs.version }}"
+          LATEST=$(gh release view --json tagName --jq '.tagName' 2>/dev/null || echo "")
+          LATEST="${LATEST#v}"
+          [ -z "$LATEST" ] && LATEST="0.0.0"
+          HIGHER=$(node -e "
+            const a = process.argv[1].split('.').map(Number);
+            const b = process.argv[2].split('.').map(Number);
+            let res = false;
+            for (let i = 0; i < 3; i++) {
+              if ((a[i] || 0) > (b[i] || 0)) { res = true; break; }
+              if ((a[i] || 0) < (b[i] || 0)) { res = false; break; }
+            }
+            console.log(res ? 'true' : 'false');
+          " "$CURRENT" "$LATEST")
+          echo "release=$HIGHER" >> $GITHUB_OUTPUT
+          echo "package=$CURRENT, latest release=$LATEST, release=$HIGHER"
+
+  # 3) 3개 OS에서 빌드. gate 결과에 따라 분기한다.
+  #    네이티브 의존성(ffmpeg-static, whisper-addon, onnxruntime-node)은 플랫폼별
+  #    prebuilt라 각 타깃 OS의 네이티브 러너에서 빌드해야 한다(cross-compile 불가).
+  build:
+    needs: gate
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: windows-latest # win x64
+          - os: windows-latest # win x64 → nsis
             pack: pack:win
-          - os: macos-14 # Apple Silicon (arm64) — onnxruntime 정렬 지원
+          - os: macos-14 # Apple Silicon (arm64) → dmg
             pack: pack:mac
-          - os: ubuntu-latest # linux x64
+          - os: ubuntu-latest # linux x64 → AppImage
             pack: pack:linux
     runs-on: ${{ matrix.os }}
     steps:
@@ -49,12 +119,19 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+
       - name: Build & package
         run: npm run ${{ matrix.pack }}
         env:
-          # PR 빌드에서는 코드 서명을 건너뛴다(서명 인증서는 release에서만).
-          CSC_IDENTITY_AUTO_DISCOVERY: false
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # 릴리즈일 때만 코드 서명 인증서를 사용(시크릿이 있으면). 그 외엔 미서명.
+          CSC_LINK: ${{ needs.gate.outputs.release == 'true' && secrets.CSC_LINK || '' }}
+          CSC_KEY_PASSWORD: ${{ needs.gate.outputs.release == 'true' && secrets.CSC_KEY_PASSWORD || '' }}
+          CSC_IDENTITY_AUTO_DISCOVERY: ${{ needs.gate.outputs.release == 'true' && secrets.CSC_LINK != '' }}
+
+      # 릴리즈가 아니면 산출물을 아티팩트로만 업로드.
       - name: Upload artifacts
+        if: needs.gate.outputs.release != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: captionx-${{ matrix.os }}
@@ -64,3 +141,16 @@ jobs:
             dist/*.AppImage
           if-no-files-found: ignore
           retention-days: 7
+
+      # 릴리즈면 GitHub Release 에 업로드(태그가 없으면 현재 커밋에 생성).
+      - name: Upload to GitHub Release
+        if: needs.gate.outputs.release == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.gate.outputs.tag }}
+          files: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.AppImage
+            dist/latest*.yml
+          fail_on_unmatched_files: false
