@@ -1325,17 +1325,17 @@ button:disabled {
   padding: 24px;
   background: rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(2px);
+  overflow-y: auto;
 }
 
 .modal {
   width: 100%;
   max-width: 460px;
-  max-height: 90vh;
-  overflow-y: auto;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
+  overflow: visible;
 }
 
 .modal__header {
@@ -1784,4 +1784,8 @@ button:disabled {
   border: 1.5px solid var(--text);
   box-shadow: none;
   font-weight: 700;
+}
+
+:root[data-ui-theme="doodle"] .modal__header {
+  padding: 22px 20px 16px 20px;
 }
