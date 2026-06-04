@@ -2,9 +2,9 @@
 
 # 🎬 CaptionX
 
-**Python不要で、インストール後すぐに実行できる字幕文字起こしデスクトップアプリ**
+**一般ユーザー向け字幕文字起こしデスクトップアプリ**
 
-[![React](https://img.shields.io/badge/React-19-blue?logo=react)](https://react.dev) [![Electron](https://img.shields.io/badge/Electron-34-478aef?logo=electron)](https://www.electronjs.org) [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)](https://www.typescriptlang.org) [![Vite](https://img.shields.io/badge/Vite-6-bd34fe?logo=vite)](https://vite.dev) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](../LICENSE)
+[![React](https://img.shields.io/badge/React-v19.0.0-fed7aa?style=flat-square&logo=react&labelColor=d8b4fe&logoColor=black)](https://react.dev) [![Electron](https://img.shields.io/badge/Electron-v42.3.3-bae6fd?style=flat-square&logo=electron&labelColor=fed7aa&logoColor=black)](https://www.electronjs.org) [![TypeScript](https://img.shields.io/badge/TypeScript-v5.7.3-e9d5ff?style=flat-square&logo=typescript&labelColor=bae6fd&logoColor=black)](https://www.typescriptlang.org) [![Vite](https://img.shields.io/badge/Vite-v6.0.0-ffedd5?style=flat-square&logo=vite&labelColor=e9d5ff&logoColor=black)](https://vite.dev) [![Biome](https://img.shields.io/badge/Biome-v2.4.16-f3e8ff?style=flat-square&logo=biome&labelColor=bae6fd&logoColor=black)](https://biomejs.dev) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-fed7aa?style=flat-square&labelColor=d8b4fe)](../LICENSE)
 
 [한국어](../README.md) | [English](README.en-us.md) | [简体中文](README.zh-hans.md) | [繁體中文](README.zh-hant.md)
 
@@ -103,8 +103,6 @@ npm run check   # lint + format:check + typecheck + deadcode + test を一括実
 | `npm run test`         | vitest                          |
 | `npm run check`        | Biome + tsc + knip + vitest 一括 |
 
-純粋ロジック（Viterbiアライメント、トークナイザー、字幕シリアライズ、タイムコードなど）はユニットテストで検証されます。
-
 ## 📁 構造
 
 ```
@@ -142,6 +140,14 @@ CaptionXはオープンソースプロジェクトであり、皆様からの貢
 
 - **GitHub Issues**: バグ報告や新機能の提案のために、新しいIssueを作成してください。
 - **Pull Requests**: 直接的な修正や改善案を送信できます。
+
+## 📚 参考文献 (References)
+
+- **[whisperX](https://github.com/m-bain/whisperX)**: Whisperとwav2vec2強制アライメント（Forced Alignment）を組み合わせて正確な単語レベルのタイムスタンプを取得するパイプライン設計の主要なインスピレーションとなったプロジェクトです。
+- **[whisper.cpp](https://github.com/ggml-org/whisper.cpp)**: C/C++ベースの高性能なWhisper推論エンジンであり、本アプリの音声認識基盤となっています。
+- **[onnxruntime](https://github.com/microsoft/onnxruntime)**: wav2vec2モデルをCPU/GPUで高速かつ効率的に推論するためのエンジンです。
+- **[GTCRN](https://github.com/545907361/GTCRN)**: 背景ノイズや音楽を除去する音声向上（Denoising）処理に使用されているニューラルネットワークモデルです。
+- **[wav2vec 2.0](https://arxiv.org/abs/2006.11477)**: 単語アライメント段階における特徴抽出およびCTC Emission算出に利用されている音声表現学習フレームワークです。
 
 ## 📄 ライセンス
 
