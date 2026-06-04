@@ -4,6 +4,7 @@ import { mkdir, rename, rm, stat } from 'node:fs/promises'
 import { join } from 'node:path'
 import { app } from 'electron'
 import { resolveFfmpegPath } from './decode'
+import { probeAudioTracks } from './tracks'
 
 /** 재생용 추출 오디오 캐시 루트 (userData/preview-cache) */
 export function cacheDir(): string {
@@ -32,26 +33,45 @@ async function exists(p: string): Promise<boolean> {
   }
 }
 
-/** Chromium 미디어 엘리먼트가 안정적으로 읽는 preview 출력 포맷. */
-const PREVIEW_EXT = 'm4a'
+/**
+ * Chromium 미디어 엘리먼트가 그대로 재생 가능한 코덱 → 리먹스 출력(확장자/컨테이너).
+ * 여기 있는 코덱은 재인코딩 없이 `-c:a copy` 로 컨테이너만 바꿔(거의 즉시) 추출한다.
+ * 비호환 코덱(ac3·dts·eac3·pcm 등)은 아래 ENCODE 폴백으로 AAC/m4a로 재인코딩한다.
+ */
+const COPYABLE: Record<string, { ext: string; format: string }> = {
+  aac: { ext: 'm4a', format: 'mp4' },
+  mp3: { ext: 'mp3', format: 'mp3' },
+  flac: { ext: 'flac', format: 'flac' },
+  opus: { ext: 'opus', format: 'ogg' },
+  vorbis: { ext: 'ogg', format: 'ogg' }
+}
 
-/** 지정 오디오 트랙(미지정 시 0:a:0)을 브라우저 호환 AAC/m4a로 추출하는 인자. */
-function previewAudioArgs(trackIndex?: number): string[] {
-  return [
-    '-map',
-    `0:a:${trackIndex ?? 0}`,
-    '-vn',
-    '-sn',
-    '-dn',
-    '-c:a',
-    'aac',
-    '-b:a',
-    '160k',
-    '-movflags',
-    '+faststart',
-    '-f',
-    'mp4'
-  ]
+/** 비호환 코덱 재인코딩 폴백 출력 확장자(안정적인 AAC/m4a). */
+const ENCODE_EXT = 'm4a'
+
+interface PreviewPlan {
+  /** 출력 파일 확장자(캐시 파일명·MIME 결정). */
+  ext: string
+  /** ffmpeg 추출 인자(입력 `-i` 와 출력 경로 사이에 들어갈 부분). */
+  args: string[]
+}
+
+/**
+ * 선택 트랙의 코덱에 따라 추출 계획을 세운다(순수 함수).
+ * 호환 코덱이면 `-c:a copy`(리먹스), 아니면 AAC 재인코딩으로 폴백한다.
+ */
+export function buildPreviewPlan(codec: string | undefined, trackIndex?: number): PreviewPlan {
+  const map = ['-map', `0:a:${trackIndex ?? 0}`, '-vn', '-sn', '-dn']
+  const copy = codec ? COPYABLE[codec] : undefined
+  if (copy) {
+    // faststart(moov 선두 배치)는 mp4 계열에만 의미가 있다.
+    const movflags = copy.format === 'mp4' ? ['-movflags', '+faststart'] : []
+    return { ext: copy.ext, args: [...map, '-c:a', 'copy', ...movflags, '-f', copy.format] }
+  }
+  return {
+    ext: ENCODE_EXT,
+    args: [...map, '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart', '-f', 'mp4']
+  }
 }
 
 /**
@@ -66,21 +86,12 @@ async function extractAudio(
   out: string,
   dir: string,
   baseKey: string,
-  trackIndex?: number
+  planArgs: string[]
 ): Promise<void> {
   const tmp = join(dir, `.${baseKey}.${randomUUID()}.part`)
   try {
     await new Promise<void>((resolve, reject) => {
-      const args = [
-        '-hide_banner',
-        '-loglevel',
-        'error',
-        '-y',
-        '-i',
-        filePath,
-        ...previewAudioArgs(trackIndex),
-        tmp
-      ]
+      const args = ['-hide_banner', '-loglevel', 'error', '-y', '-i', filePath, ...planArgs, tmp]
       const proc = spawn(resolveFfmpegPath(), args, { stdio: ['ignore', 'ignore', 'pipe'] })
       let stderr = ''
       proc.stderr.on('data', (c: Buffer) => (stderr += c.toString()))
@@ -97,6 +108,8 @@ async function extractAudio(
   }
 }
 
+const inFlightPreviews = new Map<string, Promise<string>>()
+
 /**
  * 미디어의 오디오 트랙을 브라우저 호환 AAC/m4a로 추출한다.
  * 원본 컨테이너/코덱별 Chromium 지원 차이를 피하기 위해 preview 출력은 항상
@@ -109,9 +122,34 @@ export async function preparePreviewAudio(filePath: string, trackIndex?: number)
   const info = await stat(filePath)
   const dir = cacheDir()
   await mkdir(dir, { recursive: true })
+
+  // 선택 트랙의 코덱을 조사해, 브라우저 호환이면 리먹스(copy)·아니면 재인코딩한다.
+  // 조사 실패/범위 밖이면 안전하게 재인코딩(undefined 코덱)으로 폴백한다.
+  let codec: string | undefined
+  try {
+    const tracks = await probeAudioTracks(filePath)
+    codec = tracks[trackIndex ?? 0]?.codec
+  } catch {
+    codec = undefined
+  }
+  const plan = buildPreviewPlan(codec, trackIndex)
+
+  // 캐시 파일명은 plan.ext 를 따른다(copy/encode·컨테이너가 바뀌면 자연히 분리됨).
   const baseKey = cacheKey(filePath, info.size, info.mtimeMs, trackIndex)
-  const out = join(dir, `${baseKey}.${PREVIEW_EXT}`)
+  const out = join(dir, `${baseKey}.${plan.ext}`)
   if (await exists(out)) return out
-  await extractAudio(filePath, out, dir, baseKey, trackIndex)
-  return out
+
+  let promise = inFlightPreviews.get(out)
+  if (!promise) {
+    promise = (async () => {
+      try {
+        await extractAudio(filePath, out, dir, baseKey, plan.args)
+        return out
+      } finally {
+        inFlightPreviews.delete(out)
+      }
+    })()
+    inFlightPreviews.set(out, promise)
+  }
+  return promise
 }

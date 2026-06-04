@@ -244,7 +244,8 @@ export function useBatch(): BatchApi {
           trackIndex: 0
         }))
       if (next.length === 0) return
-      const merged = [...itemsRef.current, ...next]
+      // 새로 추가된 파일을 큐 상단에 배치한다(최근 추가가 위로 보이도록).
+      const merged = [...next, ...itemsRef.current]
       // itemsRef 를 즉시 갱신해, 실행 중이면 ensureWorkers 가 새 항목을 바로 인식하도록 한다.
       itemsRef.current = merged
       setItems(merged)

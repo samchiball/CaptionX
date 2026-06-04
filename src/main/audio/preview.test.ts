@@ -12,7 +12,37 @@ vi.mock('electron', () => ({
 }))
 
 // 모킹 이후에 import해야 mock이 적용된다.
-const { preparePreviewAudio } = await import('./preview')
+const { preparePreviewAudio, buildPreviewPlan } = await import('./preview')
+
+describe('buildPreviewPlan', () => {
+  it('브라우저 호환 코덱(aac)은 재인코딩 없이 copy 리먹스한다', () => {
+    const plan = buildPreviewPlan('aac', 1)
+    expect(plan.ext).toBe('m4a')
+    expect(plan.args).toContain('copy')
+    expect(plan.args).not.toContain('aac') // 재인코딩 코덱 인자가 없어야 한다
+    expect(plan.args).toEqual(expect.arrayContaining(['-map', '0:a:1']))
+  })
+
+  it('mp3는 mp3 컨테이너로 copy한다', () => {
+    const plan = buildPreviewPlan('mp3')
+    expect(plan.ext).toBe('mp3')
+    expect(plan.args).toContain('copy')
+    expect(plan.args).toEqual(expect.arrayContaining(['-f', 'mp3']))
+  })
+
+  it('비호환 코덱(ac3)은 AAC/m4a로 재인코딩한다', () => {
+    const plan = buildPreviewPlan('ac3')
+    expect(plan.ext).toBe('m4a')
+    expect(plan.args).toContain('aac')
+    expect(plan.args).not.toContain('copy')
+  })
+
+  it('코덱 미상이면 안전하게 재인코딩으로 폴백한다', () => {
+    const plan = buildPreviewPlan(undefined)
+    expect(plan.ext).toBe('m4a')
+    expect(plan.args).toContain('aac')
+  })
+})
 
 const CACHE = join(USER_DATA, 'preview-cache')
 
@@ -100,6 +130,35 @@ describe('preparePreviewAudio', () => {
     expect(files.some((f) => f.endsWith('.part'))).toBe(false)
     // 실패분이 .m4a로 굳어 다음 실행에서 재사용되지 않아야 한다(잘린 재생 버그 방지).
     expect(files.length).toBe(1) // 앞 테스트의 정상 sample 캐시 1개만 존재
+  }, 30000)
+
+  it('호환 코덱(mp3)은 재인코딩 없이 mp3로 리먹스한다', async () => {
+    const mp3 = join(USER_DATA, 'sample.mp3')
+    await new Promise<void>((resolve, reject) => {
+      const proc = spawn(
+        resolveFfmpegPath(),
+        [
+          '-hide_banner',
+          '-loglevel',
+          'error',
+          '-y',
+          '-f',
+          'lavfi',
+          '-i',
+          'sine=duration=1',
+          '-c:a',
+          'libmp3lame',
+          mp3
+        ],
+        { stdio: ['ignore', 'ignore', 'ignore'] }
+      )
+      proc.on('error', reject)
+      proc.on('close', (c) => (c === 0 ? resolve() : reject(new Error(`mp3 gen failed ${c}`))))
+    })
+    const out = await preparePreviewAudio(mp3)
+    expect(out.endsWith('.mp3')).toBe(true)
+    expect((await stat(out)).size).toBeGreaterThan(0)
+    expect(await partFiles()).toHaveLength(0)
   }, 30000)
 
   it('MKV 컨테이너도 안정적인 m4a 캐시로 추출한다', async () => {

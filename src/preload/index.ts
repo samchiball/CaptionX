@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer'
 import { electronAPI } from '@electron-toolkit/preload'
 import {
   type AudioTrack,
@@ -32,7 +33,8 @@ const api = {
    * 로컬 미디어 절대 경로를 렌더러 <video>/<audio>에서 재생 가능한
    * 커스텀 프로토콜 URL로 변환한다.
    */
-  mediaUrl: (filePath: string): string => `${MEDIA_SCHEME}://file/${encodeURIComponent(filePath)}`,
+  mediaUrl: (filePath: string): string =>
+    `${MEDIA_SCHEME}://file/${Buffer.from(filePath, 'utf-8').toString('base64url')}`,
 
   /**
    * 재생용 오디오를 브라우저 호환 형식(m4a)으로 추출하고 그 절대 경로를 받는다.
@@ -40,6 +42,10 @@ const api = {
    */
   prepareMedia: (filePath: string, trackIndex?: number): Promise<string> =>
     ipcRenderer.invoke(IPC.prepareMedia, filePath, trackIndex),
+
+  /** 오디오 캐시 파일의 웨이브폼 데이터(피크 값들)를 가져온다. */
+  getWaveform: (audioPath: string): Promise<number[]> =>
+    ipcRenderer.invoke(IPC.getWaveform, audioPath),
 
   /**
    * 멀티트랙 영상의 오디오 트랙 목록을 조사한다(전사·모니터링 트랙 선택용).
