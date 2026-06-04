@@ -22,10 +22,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "biome check . && npm run typecheck && npm run deadcode && npm run test",
-    "pack:win": "electron-vite build && electron-builder --win",
-    "pack:mac": "electron-vite build && electron-builder --mac",
+    "pack:win": "electron-vite build && electron-builder --win --publish never",
+    "pack:mac": "electron-vite build && electron-builder --mac --publish never",
     "patch:whisper-rpath": "node scripts/patch-whisper-rpath.mjs",
-    "pack:linux": "npm run patch:whisper-rpath && electron-vite build && electron-builder --linux",
+    "pack:linux": "npm run patch:whisper-rpath && electron-vite build && electron-builder --linux --publish never",
     "build:win": "npm run typecheck && npm run pack:win"
   },
   "dependencies": {
