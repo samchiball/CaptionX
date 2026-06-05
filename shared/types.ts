@@ -171,8 +171,44 @@ export const IPC = {
   getVersion: 'captionx:get-version',
   getDataPaths: 'captionx:get-data-paths',
   openDataPath: 'captionx:open-data-path',
-  getWaveform: 'captionx:get-waveform'
+  getWaveform: 'captionx:get-waveform',
+  // 자동 업데이트
+  updateCheck: 'captionx:update-check',
+  updateDownload: 'captionx:update-download',
+  updateInstall: 'captionx:update-install',
+  updateStatus: 'captionx:update-status',
+  // macOS 등 in-app 설치가 불가한 플랫폼에서 릴리스 페이지를 외부 브라우저로 연다.
+  updateOpenReleasePage: 'captionx:update-open-release-page'
 } as const
+
+/**
+ * 자동 업데이트 진행 상태(메인 → 렌더러 푸시).
+ * - 'idle': 초기/유휴
+ * - 'checking': 업데이트 확인 중
+ * - 'not-available': 최신 버전 사용 중
+ * - 'available': 새 버전 감지(다운로드 대기)
+ * - 'downloading': 백그라운드 다운로드 중(percent)
+ * - 'downloaded': 다운로드 완료(재시작 시 설치)
+ * - 'error': 확인/다운로드 실패(message)
+ */
+export type UpdatePhase =
+  | 'idle'
+  | 'checking'
+  | 'not-available'
+  | 'available'
+  | 'downloading'
+  | 'downloaded'
+  | 'error'
+
+export interface UpdateStatus {
+  phase: UpdatePhase
+  /** 감지/다운로드된 새 버전(available 이후) */
+  version?: string
+  /** 다운로드 진행률 0..100 (downloading) */
+  percent?: number
+  /** 오류 메시지(error) */
+  message?: string
+}
 
 /**
  * 앱이 입력 데이터를 저장하는 위치를 가리키는 키.

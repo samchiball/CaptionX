@@ -147,6 +147,7 @@ jobs:
           files: |
             dist/*.exe
             dist/*.dmg
+            dist/*.zip
             dist/*.AppImage
             dist/*.blockmap
             dist/latest*.yml

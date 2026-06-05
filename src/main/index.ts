@@ -4,6 +4,7 @@ import { app, BrowserWindow, Menu, shell } from 'electron'
 import { registerIpcHandlers } from './ipc'
 import { registerMediaProtocol, registerMediaSchemes } from './media-protocol'
 import { resolveBundledResource } from './resources'
+import { initAutoUpdater } from './updater'
 
 // Task Manager 등에 표시되는 프로세스명을 명시적으로 지정한다.
 // (지정하지 않으면 package.json의 긴 description 값이 노출된다.)
@@ -82,6 +83,9 @@ app.whenReady().then(() => {
   Menu.setApplicationMenu(null)
 
   createWindow()
+
+  // 윈도우 생성 후 백그라운드로 릴리스 업데이트를 확인한다(패키징 빌드에서만 동작).
+  initAutoUpdater()
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

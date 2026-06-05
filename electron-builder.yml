@@ -31,10 +31,17 @@ nsis:
   include: build/installer.nsh
 mac:
   target:
+    # dmg: 최초 설치/배포용
+    # zip: electron-updater 자동 업데이트 적용용(macOS는 zip 으로만 in-place 업데이트 가능)
     - dmg
+    - zip
   category: public.app-category.productivity
 linux:
   target:
     - AppImage
   category: AudioVideo
+publish:
+  - provider: github
+    owner: samchiball
+    repo: CaptionX
 npmRebuild: false
