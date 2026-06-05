@@ -10,6 +10,7 @@ import {
 } from '../hooks/useBatch'
 import { useClickOutside } from '../hooks/useClickOutside'
 import type { UiThemePreference } from '../hooks/useTheme'
+import type { UpdaterApi } from '../hooks/useUpdater'
 import { useTranslation } from '../i18n'
 import { CloseIcon } from './DoodleIcons'
 import { InfoTooltip } from './InfoTooltip'
@@ -27,6 +28,8 @@ type SettingsModalProps = {
   hasHardware: boolean
   uiTheme: UiThemePreference
   onUiThemeChange: (next: UiThemePreference) => void
+  /** 자동 업데이트 상태·액션(수동 확인·다운로드·설치). */
+  updater: UpdaterApi
 }
 
 /**
@@ -44,7 +47,8 @@ export function SettingsModal({
   maxRecommendedConcurrency,
   hasHardware,
   uiTheme,
-  onUiThemeChange
+  onUiThemeChange,
+  updater
 }: SettingsModalProps): React.JSX.Element | null {
   const t = useTranslation()
   const dialogRef = useRef<HTMLDivElement>(null)
@@ -222,15 +226,48 @@ export function SettingsModal({
 
           <div className="modal__app-info">
             <h3 className="modal__section-title">{t('settings.appInfo')}</h3>
-            <div className="modal__app-card">
-              <div className="modal__app-brand">
-                <span className="modal__app-logo">🎬</span>
-                <div className="modal__app-meta">
-                  <span className="modal__app-name">CaptionX</span>
-                  <span className="modal__app-version-label">{t('settings.version')}</span>
-                </div>
-              </div>
+            <div className="modal__version-line">
+              <span className="modal__version-name">CaptionX</span>
               <span className="modal__app-version-badge">v{version || '0.1.0'}</span>
+            </div>
+
+            <div className="modal__update-row">
+              <span className="modal__update-status">
+                {updater.status.phase === 'checking' && t('update.checking')}
+                {updater.status.phase === 'not-available' && t('update.upToDate')}
+                {updater.status.phase === 'available' &&
+                  t('update.available', { version: updater.status.version ?? '' })}
+                {updater.status.phase === 'downloading' &&
+                  t('update.downloading', { pct: updater.status.percent ?? 0 })}
+                {updater.status.phase === 'downloaded' && t('update.downloaded')}
+                {updater.status.phase === 'error' && t('update.error')}
+              </span>
+              {updater.status.phase === 'available' ? (
+                updater.manualInstall ? (
+                  <button type="button" className="btn-ghost" onClick={updater.openReleasePage}>
+                    {t('update.openPage')}
+                  </button>
+                ) : (
+                  <button type="button" className="btn-ghost" onClick={updater.download}>
+                    {t('update.download')}
+                  </button>
+                )
+              ) : updater.status.phase === 'downloaded' ? (
+                <button type="button" className="btn-ghost" onClick={updater.install}>
+                  {t('update.restart')}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="btn-ghost"
+                  onClick={updater.check}
+                  disabled={
+                    updater.status.phase === 'checking' || updater.status.phase === 'downloading'
+                  }
+                >
+                  {t('update.check')}
+                </button>
+              )}
             </div>
           </div>
         </section>

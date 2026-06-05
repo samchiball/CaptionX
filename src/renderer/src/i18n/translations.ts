@@ -204,8 +204,19 @@ const ko = {
   'settings.dataStorage.history': '전사 보관함',
   'settings.dataStorage.audioCache': '오디오 캐시',
   'settings.dataStorage.open': '열기',
-  'settings.appInfo': '앱 정보',
-  'settings.version': '현재 버전'
+  'settings.appInfo': '버전',
+  'settings.version': '현재 버전',
+  // 자동 업데이트
+  'update.check': '업데이트 확인',
+  'update.checking': '업데이트 확인 중…',
+  'update.upToDate': '최신 버전을 사용 중입니다',
+  'update.available': '새 버전 {version} 사용 가능',
+  'update.download': '업데이트 다운로드',
+  'update.downloading': '다운로드 중… {pct}%',
+  'update.downloaded': '업데이트 준비 완료',
+  'update.restart': '재시작하여 설치',
+  'update.error': '업데이트 확인 실패',
+  'update.openPage': '새 버전 받기'
 } as const
 
 export type MessageKey = keyof typeof ko
@@ -381,8 +392,19 @@ const en: Messages = {
   'settings.dataStorage.history': 'Transcript archive',
   'settings.dataStorage.audioCache': 'Audio cache',
   'settings.dataStorage.open': 'Open',
-  'settings.appInfo': 'App Info',
-  'settings.version': 'Current Version'
+  'settings.appInfo': 'Version',
+  'settings.version': 'Current Version',
+  // Auto update
+  'update.check': 'Check for updates',
+  'update.checking': 'Checking for updates…',
+  'update.upToDate': 'You are on the latest version',
+  'update.available': 'New version {version} available',
+  'update.download': 'Download update',
+  'update.downloading': 'Downloading… {pct}%',
+  'update.downloaded': 'Update ready',
+  'update.restart': 'Restart & install',
+  'update.error': 'Update check failed',
+  'update.openPage': 'Get new version'
 }
 
 const ja: Messages = {
@@ -552,8 +574,19 @@ const ja: Messages = {
   'settings.dataStorage.history': '文字起こしアーカイブ',
   'settings.dataStorage.audioCache': '音声キャッシュ',
   'settings.dataStorage.open': '開く',
-  'settings.appInfo': 'アプリ情報',
-  'settings.version': '現在のバージョン'
+  'settings.appInfo': 'バージョン',
+  'settings.version': '現在のバージョン',
+  // 自動アップデート
+  'update.check': 'アップデートを確認',
+  'update.checking': 'アップデートを確認中…',
+  'update.upToDate': '最新バージョンを使用中です',
+  'update.available': '新しいバージョン {version} が利用可能',
+  'update.download': 'アップデートをダウンロード',
+  'update.downloading': 'ダウンロード中… {pct}%',
+  'update.downloaded': 'アップデートの準備完了',
+  'update.restart': '再起動してインストール',
+  'update.error': 'アップデートの確認に失敗しました',
+  'update.openPage': '新しいバージョンを入手'
 }
 
 const es: Messages = {
@@ -727,8 +760,19 @@ const es: Messages = {
   'settings.dataStorage.history': 'Archivo de transcripciones',
   'settings.dataStorage.audioCache': 'Caché de audio',
   'settings.dataStorage.open': 'Abrir',
-  'settings.appInfo': 'Información de la aplicación',
-  'settings.version': 'Versión actual'
+  'settings.appInfo': 'Versión',
+  'settings.version': 'Versión actual',
+  // Actualización automática
+  'update.check': 'Buscar actualizaciones',
+  'update.checking': 'Buscando actualizaciones…',
+  'update.upToDate': 'Tienes la última versión',
+  'update.available': 'Nueva versión {version} disponible',
+  'update.download': 'Descargar actualización',
+  'update.downloading': 'Descargando… {pct}%',
+  'update.downloaded': 'Actualización lista',
+  'update.restart': 'Reiniciar e instalar',
+  'update.error': 'Error al buscar actualizaciones',
+  'update.openPage': 'Obtener nueva versión'
 }
 
 const fr: Messages = {
@@ -903,8 +947,19 @@ const fr: Messages = {
   'settings.dataStorage.history': 'Archive des transcriptions',
   'settings.dataStorage.audioCache': 'Cache audio',
   'settings.dataStorage.open': 'Ouvrir',
-  'settings.appInfo': "Informations sur l'application",
-  'settings.version': 'Version actuelle'
+  'settings.appInfo': 'Version',
+  'settings.version': 'Version actuelle',
+  // Mise à jour automatique
+  'update.check': 'Rechercher des mises à jour',
+  'update.checking': 'Recherche de mises à jour…',
+  'update.upToDate': 'Vous avez la dernière version',
+  'update.available': 'Nouvelle version {version} disponible',
+  'update.download': 'Télécharger la mise à jour',
+  'update.downloading': 'Téléchargement… {pct}%',
+  'update.downloaded': 'Mise à jour prête',
+  'update.restart': 'Redémarrer et installer',
+  'update.error': 'Échec de la recherche de mises à jour',
+  'update.openPage': 'Obtenir la nouvelle version'
 }
 
 const de: Messages = {
@@ -1078,8 +1133,19 @@ const de: Messages = {
   'settings.dataStorage.history': 'Transkriptarchiv',
   'settings.dataStorage.audioCache': 'Audio-Cache',
   'settings.dataStorage.open': 'Öffnen',
-  'settings.appInfo': 'App-Info',
-  'settings.version': 'Aktuelle Version'
+  'settings.appInfo': 'Version',
+  'settings.version': 'Aktuelle Version',
+  // Automatische Aktualisierung
+  'update.check': 'Nach Updates suchen',
+  'update.checking': 'Suche nach Updates…',
+  'update.upToDate': 'Sie verwenden die neueste Version',
+  'update.available': 'Neue Version {version} verfügbar',
+  'update.download': 'Update herunterladen',
+  'update.downloading': 'Herunterladen… {pct}%',
+  'update.downloaded': 'Update bereit',
+  'update.restart': 'Neu starten und installieren',
+  'update.error': 'Update-Suche fehlgeschlagen',
+  'update.openPage': 'Neue Version holen'
 }
 
 // 简体中文 (zh-Hans)
@@ -1245,8 +1311,19 @@ const zhHans: Messages = {
   'settings.dataStorage.history': '转录存档',
   'settings.dataStorage.audioCache': '音频缓存',
   'settings.dataStorage.open': '打开',
-  'settings.appInfo': '应用信息',
-  'settings.version': '当前版本'
+  'settings.appInfo': '版本',
+  'settings.version': '当前版本',
+  // 自动更新
+  'update.check': '检查更新',
+  'update.checking': '正在检查更新…',
+  'update.upToDate': '已是最新版本',
+  'update.available': '有新版本 {version} 可用',
+  'update.download': '下载更新',
+  'update.downloading': '正在下载… {pct}%',
+  'update.downloaded': '更新已就绪',
+  'update.restart': '重启并安装',
+  'update.error': '检查更新失败',
+  'update.openPage': '获取新版本'
 }
 
 // 繁體中文 (zh-Hant)
@@ -1412,8 +1489,19 @@ const zhHant: Messages = {
   'settings.dataStorage.history': '轉錄封存',
   'settings.dataStorage.audioCache': '音訊快取',
   'settings.dataStorage.open': '開啟',
-  'settings.appInfo': '應用程式資訊',
-  'settings.version': '目前版本'
+  'settings.appInfo': '版本',
+  'settings.version': '目前版本',
+  // 自動更新
+  'update.check': '檢查更新',
+  'update.checking': '正在檢查更新…',
+  'update.upToDate': '已是最新版本',
+  'update.available': '有新版本 {version} 可用',
+  'update.download': '下載更新',
+  'update.downloading': '正在下載… {pct}%',
+  'update.downloaded': '更新已就緒',
+  'update.restart': '重新啟動並安裝',
+  'update.error': '檢查更新失敗',
+  'update.openPage': '取得新版本'
 }
 
 export const translations: Record<UiLocale, Messages> = {

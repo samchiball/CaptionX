@@ -34,6 +34,7 @@
     "@fontsource/comic-neue": "^5.2.7",
     "@fontsource/gaegu": "^5.2.8",
     "@kutalia/whisper-node-addon": "^1.1.0",
+    "electron-updater": "^6.8.3",
     "ffmpeg-static": "^5.2.0",
     "onnxruntime-node": "^1.20.1",
     "wavesurfer.js": "^7.12.7"

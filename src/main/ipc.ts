@@ -11,7 +11,8 @@ import {
   MEDIA_EXTENSIONS,
   type ResplitOptions,
   type TranscribeOptions,
-  type TranscriptResult
+  type TranscriptResult,
+  type UpdateStatus
 } from '@shared/types'
 import { app, BrowserWindow, dialog, type IpcMainInvokeEvent, ipcMain, shell } from 'electron'
 import { preparePreviewAudio, cacheDir as previewCacheDir } from './audio/preview'
@@ -22,6 +23,13 @@ import { extensionFor, serialize } from './export/subtitle'
 import { deleteEntry, getEntry, historyDir, listEntries, saveEntry } from './history/store'
 import { isCancellation, runTranscription } from './pipeline'
 import { getHardwareInfo } from './systemInfo'
+import {
+  checkForUpdates,
+  currentUpdateStatus,
+  downloadUpdate,
+  openReleasePage,
+  quitAndInstall
+} from './updater'
 
 /** jobId → 전사 결과 (내보내기 단계에서 재사용) */
 const results = new Map<
@@ -247,5 +255,24 @@ export function registerIpcHandlers(): void {
       sourcePath: entry.meta.sourcePath
     })
     return entry.result
+  })
+
+  // 자동 업데이트: 확인 → (사용자 동의 시) 백그라운드 다운로드 → 재시작 설치.
+  // 확인은 현재 상태를 즉시 반환하고, 진행 상황은 IPC.updateStatus 이벤트로 푸시한다.
+  ipcMain.handle(IPC.updateCheck, async (): Promise<UpdateStatus> => {
+    await checkForUpdates()
+    return currentUpdateStatus()
+  })
+
+  ipcMain.handle(IPC.updateDownload, async (): Promise<void> => {
+    await downloadUpdate()
+  })
+
+  ipcMain.handle(IPC.updateInstall, async (): Promise<void> => {
+    quitAndInstall()
+  })
+
+  ipcMain.handle(IPC.updateOpenReleasePage, async (): Promise<void> => {
+    await openReleasePage()
   })
 }

@@ -12,7 +12,8 @@ import {
   MEDIA_SCHEME,
   type ResplitOptions,
   type TranscribeOptions,
-  type TranscriptResult
+  type TranscriptResult,
+  type UpdateStatus
 } from '@shared/types'
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
 
@@ -95,7 +96,29 @@ const api = {
   getDataPaths: (): Promise<DataPaths> => ipcRenderer.invoke(IPC.getDataPaths),
 
   /** 지정한 데이터 저장소를 파일 탐색기에서 열기 */
-  openDataPath: (key: DataPathKey): Promise<void> => ipcRenderer.invoke(IPC.openDataPath, key)
+  openDataPath: (key: DataPathKey): Promise<void> => ipcRenderer.invoke(IPC.openDataPath, key),
+
+  /** 릴리스 업데이트 확인 → 현재 상태(이후 진행은 onUpdateStatus 로 푸시) */
+  updateCheck: (): Promise<UpdateStatus> => ipcRenderer.invoke(IPC.updateCheck),
+
+  /** 새 버전 백그라운드 다운로드 시작 */
+  updateDownload: (): Promise<void> => ipcRenderer.invoke(IPC.updateDownload),
+
+  /** 다운로드된 업데이트 설치 후 재시작 */
+  updateInstall: (): Promise<void> => ipcRenderer.invoke(IPC.updateInstall),
+
+  /** 릴리스 페이지를 외부 브라우저로 열기(macOS 수동 설치 안내) */
+  updateOpenReleasePage: (): Promise<void> => ipcRenderer.invoke(IPC.updateOpenReleasePage),
+
+  /** 실행 중인 OS 플랫폼('darwin' | 'win32' | 'linux' 등) */
+  platform: process.platform,
+
+  /** 업데이트 상태 구독(확인·다운로드 진행률·완료). 해제 함수 반환 */
+  onUpdateStatus: (cb: (s: UpdateStatus) => void): (() => void) => {
+    const listener = (_e: Electron.IpcRendererEvent, s: UpdateStatus): void => cb(s)
+    ipcRenderer.on(IPC.updateStatus, listener)
+    return () => ipcRenderer.removeListener(IPC.updateStatus, listener)
+  }
 }
 
 export type CaptionXAPI = typeof api

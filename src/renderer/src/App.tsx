@@ -12,6 +12,7 @@ import { ModelBaseCombobox, QuantizationCombobox } from './components/ModelCombo
 import { QueueList } from './components/QueueList'
 import { SettingsModal } from './components/SettingsModal'
 import { ThemeToggle } from './components/ThemeToggle'
+import { UpdateButton } from './components/UpdateButton'
 import {
   isRunnableStatus,
   normalizeConcurrency,
@@ -24,6 +25,7 @@ import { useHotwords } from './hooks/useHotwords'
 import { usePersistentState } from './hooks/usePersistentState'
 import { useResourceEstimator } from './hooks/useResourceEstimator'
 import { useTheme } from './hooks/useTheme'
+import { useUpdater } from './hooks/useUpdater'
 import { useTranslation } from './i18n'
 
 type Tab = 'transcribe' | 'history'
@@ -59,6 +61,7 @@ function App(): React.JSX.Element {
   const [tab, setTab] = useState<Tab>('transcribe')
   const [settingsOpen, setSettingsOpen] = useState(false)
   const theme = useTheme()
+  const updater = useUpdater()
   const t = useTranslation()
   const { hardware, singleReq, totalReq, maxRecommendedConcurrency } = useResourceEstimator(
     model,
@@ -150,6 +153,7 @@ function App(): React.JSX.Element {
           </div>
         </div>
         <div className="app__header-actions">
+          <UpdateButton updater={updater} />
           <LocaleToggle uiTheme={theme.uiTheme} />
           <ThemeToggle
             preference={theme.preference}
@@ -180,6 +184,7 @@ function App(): React.JSX.Element {
         hasHardware={Boolean(hardware)}
         uiTheme={theme.uiTheme}
         onUiThemeChange={theme.setUiTheme}
+        updater={updater}
       />
 
       <div className="tabs" role="tablist">
