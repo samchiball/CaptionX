@@ -104,6 +104,7 @@ const ko = {
 
   // 멀티 오디오 트랙 선택·모니터링
   'track.select': '전사 트랙',
+  'track.add': '트랙 추가',
   'track.monitor': '모니터링 트랙',
   'track.listen': '들어보기',
   'track.hideMonitor': '닫기',
@@ -287,6 +288,7 @@ const en: Messages = {
   'queue.canceled': 'The job was canceled.',
 
   'track.select': 'Transcription track',
+  'track.add': 'Add Track',
   'track.monitor': 'Monitoring track',
   'track.listen': 'Listen',
   'track.hideMonitor': 'Close',
@@ -459,6 +461,7 @@ const ja: Messages = {
   'queue.canceled': 'ジョブはキャンセルされました。',
 
   'track.select': '文字起こしトラック',
+  'track.add': 'トラック追加',
   'track.monitor': 'モニタリングトラック',
   'track.listen': '試聴',
   'track.hideMonitor': '閉じる',
@@ -630,6 +633,7 @@ const es: Messages = {
   'queue.canceled': 'El trabajo fue cancelado.',
 
   'track.select': 'Pista de transcripción',
+  'track.add': 'Añadir pista',
   'track.monitor': 'Pista de monitoreo',
   'track.listen': 'Escuchar',
   'track.hideMonitor': 'Cerrar',
@@ -805,6 +809,7 @@ const fr: Messages = {
   'queue.canceled': 'La tâche a été annulée.',
 
   'track.select': 'Piste de transcription',
+  'track.add': 'Ajouter une piste',
   'track.monitor': 'Piste de monitoring',
   'track.listen': 'Écouter',
   'track.hideMonitor': 'Fermer',
@@ -979,6 +984,7 @@ const de: Messages = {
   'queue.canceled': 'Die Aufgabe wurde abgebrochen.',
 
   'track.select': 'Transkriptionsspur',
+  'track.add': 'Spur hinzufügen',
   'track.monitor': 'Monitoring-Spur',
   'track.listen': 'Anhören',
   'track.hideMonitor': 'Schließen',
@@ -1149,6 +1155,7 @@ const zhHans: Messages = {
   'queue.canceled': '任务已取消。',
 
   'track.select': '转写音轨',
+  'track.add': '添加音轨',
   'track.monitor': '监听音轨',
   'track.listen': '试听',
   'track.hideMonitor': '关闭',
@@ -1315,6 +1322,7 @@ const zhHant: Messages = {
   'queue.canceled': '工作已取消。',
 
   'track.select': '轉寫音軌',
+  'track.add': '新增音軌',
   'track.monitor': '監聽音軌',
   'track.listen': '試聽',
   'track.hideMonitor': '關閉',

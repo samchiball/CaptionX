@@ -103,6 +103,8 @@ export interface BatchApi {
   addPaths: (paths: string[]) => void
   /** 멀티트랙 항목의 전사·모니터링 대상 트랙을 바꾼다. */
   setTrack: (id: string, trackIndex: number) => void
+  /** 멀티트랙 동영상에서 다른 오디오 트랙 전사를 위해 큐 항목을 복제 추가한다. */
+  addTrackItem: (filePath: string, trackIndex: number, tracks: AudioTrack[]) => void
   remove: (id: string) => void
   clearDone: () => void
   runAll: (settings: RunSettings) => Promise<void>
@@ -263,11 +265,48 @@ export function useBatch(): BatchApi {
     [ensureWorkers, patch]
   )
 
-  const setTrack = useCallback(
-    (id: string, trackIndex: number): void => {
-      patch(id, { trackIndex })
+  const setTrack = useCallback((id: string, trackIndex: number): void => {
+    setItems((prev) =>
+      prev.map((it) => {
+        if (it.id === id) {
+          const base = it.name.replace(/\s*\(Track\s+\d+\)$/i, '')
+          return {
+            ...it,
+            trackIndex,
+            name: `${base} (Track ${trackIndex + 1})`
+          }
+        }
+        return it
+      })
+    )
+  }, [])
+
+  const addTrackItem = useCallback(
+    (filePath: string, trackIndex: number, tracks: AudioTrack[]): void => {
+      const existing = itemsRef.current.find(
+        (it) => it.filePath === filePath && it.trackIndex === trackIndex
+      )
+      if (existing) return
+
+      const name = baseName(filePath)
+      const newItem: QueueItem = {
+        id: uid(),
+        filePath,
+        name: `${name} (Track ${trackIndex + 1})`,
+        status: 'pending',
+        progress: null,
+        result: null,
+        error: null,
+        startedAt: null,
+        tracks,
+        trackIndex
+      }
+
+      const merged = [...itemsRef.current, newItem]
+      itemsRef.current = merged
+      setItems(merged)
     },
-    [patch]
+    []
   )
 
   const remove = useCallback((id: string): void => {
@@ -358,6 +397,7 @@ export function useBatch(): BatchApi {
     busy,
     addPaths,
     setTrack,
+    addTrackItem,
     remove,
     clearDone,
     runAll,
