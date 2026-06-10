@@ -4,7 +4,7 @@
 
 **一般ユーザー向け字幕文字起こしデスクトップアプリ**
 
-[![React](https://img.shields.io/badge/React-v19.0.0-fed7aa?style=flat-square&logo=react&labelColor=d8b4fe&logoColor=black)](https://react.dev) [![Electron](https://img.shields.io/badge/Electron-v42.3.3-bae6fd?style=flat-square&logo=electron&labelColor=fed7aa&logoColor=black)](https://www.electronjs.org) [![TypeScript](https://img.shields.io/badge/TypeScript-v5.7.3-e9d5ff?style=flat-square&logo=typescript&labelColor=bae6fd&logoColor=black)](https://www.typescriptlang.org) [![Vite](https://img.shields.io/badge/Vite-v6.0.0-ffedd5?style=flat-square&logo=vite&labelColor=e9d5ff&logoColor=black)](https://vite.dev) [![Biome](https://img.shields.io/badge/Biome-v2.4.16-f3e8ff?style=flat-square&logo=biome&labelColor=bae6fd&logoColor=black)](https://biomejs.dev) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-fed7aa?style=flat-square&labelColor=d8b4fe)](../LICENSE)
+[![React](https://img.shields.io/badge/React-v19.0.0-fed7aa?style=flat-square&logo=react&labelColor=d8b4fe&logoColor=black)](https://react.dev) [![Tauri](https://img.shields.io/badge/Tauri-v2-bae6fd?style=flat-square&logo=tauri&labelColor=fed7aa&logoColor=black)](https://tauri.app) [![TypeScript](https://img.shields.io/badge/TypeScript-v5.7.3-e9d5ff?style=flat-square&logo=typescript&labelColor=bae6fd&logoColor=black)](https://www.typescriptlang.org) [![Vite](https://img.shields.io/badge/Vite-v6.0.0-ffedd5?style=flat-square&logo=vite&labelColor=e9d5ff&logoColor=black)](https://vite.dev) [![Biome](https://img.shields.io/badge/Biome-v2.4.16-f3e8ff?style=flat-square&logo=biome&labelColor=bae6fd&logoColor=black)](https://biomejs.dev) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-fed7aa?style=flat-square&labelColor=d8b4fe)](../LICENSE)
 
 [한국어](../README.md) | [English](README.en-us.md) | [简体中文](README.zh-hans.md) | [繁體中文](README.zh-hant.md)
 
@@ -64,7 +64,7 @@ flowchart LR
         UI_A["画面描画 / 進捗表示"]
     end
 
-    subgraph Main ["Electron Main Process"]
+    subgraph Main ["Tauri Rust Backend"]
         direction TB
         Main_B["ffmpeg-static<br/>(16kHz mono PCM 抽出)"]
         Main_C["whisper-node-addon<br/>(Whisper文字起こし - GPU)"]

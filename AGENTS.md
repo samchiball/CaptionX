@@ -1,98 +1,147 @@
 # AGENTS.md — CaptionX
 
-최종 사용자를 위한 win/mac/linux에서 바로 실행되는 자막 전사 데스크톱 앱.
-Whisper(whisper.cpp)로 전사하고 wav2vec2 강제정렬로 단어 레벨 타임스탬프를 만든다.
+A desktop subtitle transcription application for end-users running directly on Windows, macOS, and Linux.
+Transcribes audio using Whisper (whisper.cpp) and produces word-level timestamps using wav2vec2 forced alignment.
 
-## 기술 스택
+## Language & Reasoning Guidelines (CRITICAL)
 
-- **런타임**: Electron 34 + electron-vite, ESM(`"type": "module"`)
-- **UI**: React 19 + TypeScript + Vite (`src/renderer`)
-- **메인 프로세스**: TypeScript (`src/main`), preload는 contextBridge로 안전 API만 노출
-- **전사**: `smart-whisper` (whisper.cpp 네이티브 바인딩, GPU)
-- **정렬**: `onnxruntime-node` (wav2vec2 CTC) + 자체 Viterbi 구현(`src/main/align/viterbi.ts`)
-- **디코드**: `ffmpeg-static`
+- **Thinking Language**: Always think, plan, and reason in English (within `<thought>` tags or internal reasoning steps).
+- **Response Language**: Always output the final visible response in the same language as the user's input (e.g., if the user asks/inputs in Korean, respond in Korean; if the user asks/inputs in English, respond in English).
 
-## 디렉터리
+
+## Technology Stack
+
+- **Runtime**: Tauri v2 + Rust (Backend) + Vite + React 19 + TypeScript (Frontend)
+- **UI**: React 19 + TypeScript + Vite (`src/`)
+- **Rust Backend**: `src-tauri/` — Tauri commands, whisper-rs, ort(ONNX)
+- **Transcription**: `whisper-rs 0.16` (whisper.cpp FFI, `full` feature)
+- **Alignment**: `ort 2.0.0-rc.12` (wav2vec2/MMS ONNX, `full` feature)
+- **Decoding**: `ffmpeg-sidecar`
+
+## Directory Structure
 
 ```
-src/main      메인 프로세스 (전사/정렬/디코드/내보내기 파이프라인)
-src/preload   contextBridge API
-src/renderer  React UI
-shared        main↔renderer 공유 타입
+src/              React UI (Renderer)
+src/hooks/        Hooks for batching, queues, and state
+src/components/   UI Components
+src/api.ts        TS → Rust IPC Bridge
+shared/           TS Shared Types
+src-tauri/        Rust Backend
+  src/
+    lib.rs        Tauri App entry point + command registration
+    commands/     Tauri commands (@command functions)
+    asr/          Whisper inference
+    align/        CTC Forced Alignment (ctc.rs, vocab.rs)
+    audio/        ffmpeg PCM decoding
+    export/       SRT/VTT/JSON serialization
+    edit/         resplit_result
+    download/     reqwest streaming download
+    state.rs      AppState (Model directory, results map)
+    types.rs      Rust Shared Types
+  tests/          Integration Tests (smoke.rs, pipeline.rs)
+  examples/       Diagnostic Tools (whisper_smoke.rs)
 ```
 
-## 코드 품질 — 지속적 검사 (필수)
+---
 
-코드를 **생성/수정할 때마다** 아래를 실행해 기존 코드/테스트와의 충돌을 즉시 잡는다.
-작업 종료 시 한 번만 검사하지 말 것.
+## Development Principles — TDD Mandatory
 
-린트·포맷·임포트 정렬은 **Biome 하나로 통일**한다(ESLint/Prettier 미사용). 설정은 `biome.json`.
+**All development, modifications, and feature additions must follow the TDD cycle: RED → GREEN → REFACTOR**
 
-| 목적            | 명령                   | 도구                  |
-| --------------- | ---------------------- | --------------------- |
-| 린트            | `npm run lint`         | Biome (`biome lint`)  |
-| 포맷            | `npm run format`       | Biome (`biome format`)|
-| 포맷 검사       | `npm run format:check` | Biome                 |
-| 린트+포맷+수정  | `npm run fix`          | Biome (`check --write`)|
-| 데드코드        | `npm run deadcode`     | knip                  |
-| 타입 검사       | `npm run typecheck`    | tsc (node/web 분리)   |
-| 테스트          | `npm run test`         | vitest                |
-| **전체 검증** | `npm run check`        | `biome check` + 위 전부|
+### Core Rules
 
-권장 루프: 파일 수정 → `npm run fix && npm run typecheck` → 관련 테스트 → 커밋 전 `npm run check`.
+1. **Test First** — Write a failing test before writing the implementation. No exceptions.
+2. **RED Verification Mandatory** — The test must actually fail (including compile errors) before proceeding to implementation.
+   - A test that does not compile or run is not considered RED.
+3. **Minimum Implementation** — Write only the minimum amount of code required to make the test pass.
+4. **Commit after GREEN** — Verify the test passes and commit immediately.
+5. **No Happy-Path Assumptions** — Always test error paths, boundary conditions, and invariants.
+   - Do not rely on assumptions like "the data will always be correct".
+   - Do not rely on assumptions like "the value will always exist".
 
-## 테스트 정책 (TDD/BDD 지향)
+### TDD Git Checkpoint Patterns
 
-- 순수 로직(`viterbi.ts`, `export/*`, 타임코드 포맷터)은 **테스트 먼저** 작성한다.
-- 테스트는 동작(behavior) 단위로 기술하고, 합성 입력으로 결정적이게 유지한다.
-- 새 코드가 **기존 테스트를 깨뜨리지 않는지** 매번 `npm run test`로 확인한다.
-- 테스트 중에 코드를 적극적으로 오류 발생시키도록 노력하십시오
-- "happy paths"에 의존하지 마십시오. 창의력을 발휘하여 코드가 전제로 삼고 있는 가정을 깨뜨릴 방법을 생각해 보십시오. 데이터가 절대 "틀리지" 않을 것이라는 가정이나 특정 데이터가 항상 "존재할 것"이라는 가정에 의존하지 마십시오.
-- 네이티브/모델 의존(whisper, onnx) 코드는 인터페이스를 분리해 순수 로직만 단위 테스트하고,
-  실제 모델 경로는 통합 테스트(샘플 WAV)로 수동 검증한다.
+```
+test: add reproducer for <feature/bug>   ← Commit immediately after RED verification
+fix:  <feature/bug>                      ← Commit immediately after GREEN verification
+refactor: clean up <feature/bug>         ← Commit after refactoring is complete (optional)
+```
 
-## i18n — 다국어 (필수)
+- Checkpoint commits must be reachable from the HEAD of the active branch to be valid.
+- Commits on other branches or from past work do not qualify as checkpoints.
 
-- UI 문자열은 **반드시** `src/renderer/src/i18n/translations.ts`의 사전을 통해서만 표시한다. 컴포넌트에 하드코딩 금지(`t('key')` 사용).
-- `ko` 사전이 Source of Truth다. 새 UI 문자열을 추가/수정하면 **즉시** 지원하는 모든 언어(`UI_LOCALES`)에 동일 키를 채워 넣는다 — 한 언어만 추가하고 나머지를 비워 두지 않는다.
-- 지원 언어: 한국어(ko), English(en), 日本語(ja), 简体中文(zh-Hans), 繁體中文(zh-Hant), Español(es), Français(fr), Deutsch(de).
-- 새 언어를 추가할 때: (1) `UI_LOCALES`에 코드 추가, (2) `UI_LOCALE_LABELS`에 자국어 라벨 추가, (3) `translations`에 `Messages` 타입을 만족하는 사전 추가, (4) 필요하면 `i18n/index.tsx`의 `detectDefaultLocale` 자동 감지 보완.
-- 자리표시자(`{n}`, `{batch}` 등)는 언어마다 동일하게 유지한다.
-- **매 작업마다** `src/renderer/src/i18n/i18n.test.ts`로 점검한다 — 모든 언어가 ko와 동일한 키 집합·빈 값 없음·자리표시자 일치를 보장한다. UI 문자열을 건드린 변경은 이 테스트 통과 없이 커밋하지 않는다.
+### Rust Test Commands
 
-## 문서화 및 다국어 지원 (Docs i18n)
+```bash
+# While dev server (tauri dev) is running — bypasses captionx.exe file lock (prevents os error 32)
+cargo t --manifest-path src-tauri/Cargo.toml --features full --no-default-features
 
-- 메인 설명서인 `README.md`는 한국어(`ko`)가 Source of Truth이자 최우선 순위입니다.
-- `README.md`를 수정/갱신할 경우, 다른 언어 문서(`docs/README.en.md`, `docs/README.ja.md`, `docs/README.zh.md`)도 함께 최신 상태로 동기화하여 업데이트해야 합니다.
-- 다국어 문서 작성 시 ECJK(English, Chinese, Japanese, Korean) 문서를 우선하여 최신 상태로 유지하십시오.
+# When dev server is not running — includes full build
+cargo test --manifest-path src-tauri/Cargo.toml --features full --no-default-features
 
-## 규약
+# Show output / Filter specific tests
+cargo t --manifest-path src-tauri/Cargo.toml --features full --no-default-features -- --nocapture
+cargo t --manifest-path src-tauri/Cargo.toml --features full --no-default-features -- resolve_threads
+```
 
-- 오류가 발생하지 않는 것처럼 보이는 코드가 아니라, 확실히 작동하는 코드를 작성하세요.
-- 코드 주석은 한국어 또는 영어.
-- 파일은 ESM. 노드 빌트인은 `node:` 프리픽스 사용(`node:path`, `node:fs`).
-- preload 외 렌더러에서 Node API 직접 접근 금지(contextIsolation 유지).
-- 모델/대용량 산출물은 `models/`, `out/`, `release/`에 두고 커밋하지 않는다.
+> `cargo t` is an alias defined in `.cargo/config.toml` for `test --lib --tests`.
+> While `tauri dev` holds a lock on `captionx.exe`, standard `cargo test` fails with an "os error 32" file lock error.
 
-### optimization
+### TypeScript Test Commands
 
-- 프로파일링 도구를 사용하여 실제 최적화 기회를 파악하십시오.
-- 컴파일러가 생성하는 코드는 소스 코드에서 예상하는 방식과 다르게 작동할 수 있으며 실행 순서도 다를 수 있습니다.
-- 최적화가 너무 일찍 이루어지면 컴파일러가 자체 최적화를 적용하지 못하게 되어 전체적인 코드 속도가 느려질 수 있습니다. 아울러 프로파일링 도구 자체가 코드의 런타임 동작에 영향을 미칠 수 있다는 점도 유의해야 합니다.
+```bash
+npm run test       # Run all Vitest tests
+npm run check      # Integrated check (biome + typecheck + knip + vitest)
+npm run fix        # Biome auto-fix
+```
 
-## Git 훅 — lefthook (필수)
+---
 
-- 커밋/푸시 훅은 **lefthook**으로 관리한다(`lefthook.yml`). `npm install` 시 `prepare` 스크립트가 자동 설치한다.
-- `pre-commit`: 스테이징된 파일에 `biome check`(린트+포맷+임포트 정렬) 검사, `knip` 데드코드 검사, 그리고 `package.json`/`package-lock.json` 변경 시 `npm audit --audit-level=low` 보안 취약점 검사(현재 0건이므로 가장 엄격한 기준 유지).
-- `pre-push`: `npm run typecheck` + `npm run test`.
-- **훅 우회 금지.** `--no-verify`, `-n`, `LEFTHOOK=0`, `HUSKY=0`, `git commit`/`git push`의 훅 스킵 옵션 등 어떤 방식으로도 훅을 건너뛰지 않는다.
-- 훅이 실패하면 우회하지 말고 **원인을 고친다**. 검사를 통과한 뒤에만 커밋/푸시한다.
-- 훅 자체를 비활성화·삭제·약화(검사 항목 제거)하지 않는다. 변경이 필요하면 사용자에게 먼저 확인한다.
+## Code Quality — Continuous Checks (Mandatory)
 
-## git
+Run the following checks **every time you create or modify code** to catch conflicts with existing code/tests immediately:
 
-- 커밋 메세지는 영어를 사용한다
-- 표준 커밋 컨벤션을 사용
-- 같은 성격의 변경사항끼리 묶어라
-- 여러 변경사항은 여러줄로 표현하라
-- 커밋 메시지에 `@` 문자 사용금지(제목·본문 모두). PowerShell here-string(`@'...'@`)으로 메시지 전달 시 시작 토큰이 본문에 섞이지 않도록 닫는 `'@`는 반드시 0열에 둘 것
+| Purpose | Command | Tool |
+|---|---|---|
+| Lint + Format + Fix | `npm run fix` | Biome |
+| Complete Verification | `npm run check` | biome + typecheck + knip + vitest |
+| Rust Check | `cargo clippy` | Clippy |
+| Rust Format | `cargo fmt` | rustfmt |
+
+Recommended loop: Modify files → `npm run fix && npm run typecheck` → Run related tests → `npm run check` before committing.
+
+---
+
+## Key Design Decisions & Pitfalls
+
+### `resolve_threads` — Prevent crash when n_threads=0
+
+Passing `set_n_threads(0)` to `whisper-rs` initializes the GGML thread pool with 0 workers, which throws an STL exception across the FFI boundary, leading to "Rust cannot catch foreign exceptions" → 0xC0000409 crash.
+`resolve_threads()` in `src-tauri/src/asr/whisper.rs` automatically adjusts `Some(0)` or `None`.
+
+### `full` Feature Gate
+
+Since `whisper-rs` and `ort` require LLVM/clang, opt-in with `--features full`.
+Renderer development, export, or edit tasks can be built without the `full` feature.
+
+### Model Directory
+
+Model files are stored in `%APPDATA%\CaptionX\models\` (Windows) and are listed in `.gitignore`.
+Access them via `AppState.models_dir`. You must call `IPC.releaseResult` upon completion to free hundreds of MBs of memory.
+
+---
+
+## i18n — Internationalization (Mandatory)
+
+- UI strings must only be displayed via the dictionary in `src/i18n/translations.ts`. No hardcoding allowed.
+- The `ko` dictionary is the Source of Truth. When adding a new key, **immediately** populate the same key across all supported languages.
+- Supported languages: Korean (ko), English (en), Japanese (ja), Simplified Chinese (zh-Hans), Traditional Chinese (zh-Hant), Spanish (es), French (fr), German (de).
+
+---
+
+## Git Conventions
+
+- Commit messages must be written in English and follow standard commit conventions.
+- Group similar changes together, and describe multiple changes on separate lines.
+- Do NOT use the `@` character in commit messages (neither in the subject nor in the body).
+- When passing messages using PowerShell here-strings (`@'...'@`), the closing `'@` must be placed at column 0.

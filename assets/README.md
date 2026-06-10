@@ -23,23 +23,22 @@
 
 ## 2. OS 빌드 및 패키징용 에셋 (App Icons)
 
-- **보관 경로**: `build/` (프로젝트 루트의 `build` 디렉토리)
+- **보관 경로**: `build/` 및 `resources/`
 - **대상 파일**:
-  - Windows: `icon.ico` (256x256 이상 멀티 아이콘)
-  - macOS: `icon.icns`
-  - Linux: `icon.png` (512x512)
-- **목적**: `electron-builder.yml`의 `buildResources: build` 설정에 따라 데스크톱 애플리케이션의 설치 프로그램 및 실행 파일 아이콘으로 빌드하기 위함
+  - Windows: `build/icon.ico` (256x256 이상 멀티 아이콘)
+  - Linux/Universal: `resources/icon.png` (512x512)
+- **목적**: `tauri.conf.json`의 `bundle > icon` 설정에 따라 데스크톱 애플리케이션의 설치 프로그램 및 실행 파일 아이콘으로 빌드하기 위함
 
 ---
 
 ## 3. 웹/UI 렌더러 번들링용 에셋 (UI Assets)
 
-- **보관 경로**: `src/renderer/src/assets/`
-- **대상 파일**: UI 컴포넌트 내부에서 직접 불러와 렌더링할 로고 SVG, 인앱 일러스트 등
+- **보관 경로**: `src/assets/`
+- **대상 파일**: UI 컴포넌트 내부에서 직접 불러와 렌더링할 로고 PNG, 인앱 일러스트 등
 - **사용 예시**:
 
   ```tsx
-  import logo from './assets/logo.svg'
+  import logo from './assets/logo.png'
 
   function Header() {
     return <img src={logo} alt="CaptionX Logo" className="w-8 h-8" />
@@ -53,5 +52,5 @@
 ## 4. 런타임 동적 로드용 에셋 (Runtime Resources)
 
 - **보관 경로**: `resources/`
-- **대상 파일**: 앱이 로컬에서 실행되는 동안 메인 프로세스(`src/main`)나 프리로드(`src/preload`) 등에서 물리적 파일 경로(`node:fs`, `node:path`)를 통해 직접 접근해야 하는 리소스
-- **목적**: `electron-builder.yml`에서 `asarUnpack: - resources/**`에 지정되어 배포 패키지 빌드 후에도 압축되지 않은 형태로 특정 경로에 유지됨
+- **대상 파일**: 앱이 로컬에서 실행되는 동안 Rust 백엔드(`src-tauri/src`)에서 물리적 파일 경로를 통해 직접 접근해야 하는 리소스 (예: ONNX 모델 파일)
+- **목적**: `tauri.conf.json`에서 `bundle > resources`에 지정되어 배포 패키지 내부에 포함됨

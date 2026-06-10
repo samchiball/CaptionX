@@ -1,0 +1,23 @@
+[workspace]
+members = ["src-tauri"]
+resolver = "2"
+
+[profile.dev]
+incremental = true
+opt-level = 0
+debug = true
+
+# GGML / whisper.cpp / ORT 는 debug opt-level=0 에서
+# SIMD 스택 카나리를 손상시켜 STATUS_STACK_BUFFER_OVERRUN 을 유발한다.
+# 네이티브 C++ 크레이트만 release 수준으로 컴파일해 우회한다.
+[profile.dev.package.whisper-rs-sys]
+opt-level = 3
+
+[profile.dev.package.ort-sys]
+opt-level = 3
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = true

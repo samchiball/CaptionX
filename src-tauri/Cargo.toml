@@ -1,0 +1,68 @@
+[package]
+name = "captionx"
+version = "0.2.0"
+edition = "2021"
+
+[lib]
+name = "captionx_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["protocol-asset"] }
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-shell = "2"
+# tauri-plugin-updater은 미구현 단계 — 활성화 시 reqwest 0.13+rustls-platform-verifier가
+# Windows에서 STATUS_STACK_BUFFER_OVERRUN 크래시를 유발하므로 비활성화 상태로 유지
+# tauri-plugin-updater = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+anyhow = "1"
+uuid = { version = "1", features = ["v4"] }
+base64 = "0.22"
+dirs = "5"
+
+# 오디오 디코딩 (ffmpeg sidecar — LLVM 불필요)
+ffmpeg-sidecar = "2"
+
+# STFT/ISTFT (GTCRN denoise 전처리 — 순수 Rust, LLVM 불필요)
+realfft = "3.5"
+
+# 시스템 정보 (RAM/GPU)
+sysinfo = "0.33"
+
+# 모델 자동 다운로드 (reqwest — TLS/LLVM 불필요)
+reqwest = { version = "0.12", default-features = false, features = ["stream", "rustls-tls"] }
+futures-util = "0.3"
+
+# Whisper.cpp 바인딩 (LLVM/clang 필요 — `full` feature로 opt-in)
+whisper-rs = { version = "0.16", optional = true }
+
+# ONNX Runtime wav2vec2 / MMS (LLVM 불필요, `full` feature로 opt-in)
+# 주의: load-dynamic 기능 사용 금지 — ort-sys/disable-linking 을 활성화해 download-binaries
+# 빌드 스크립트를 조기 종료시키므로 ORT DLL 이 다운로드·복사되지 않는다.
+# ort 기본값(download-binaries + copy-dylibs + tls-native + api-24)으로 ORT 1.24 DLL을
+# 빌드 시 자동 다운로드하고 target/{debug,release}/ 에 복사한다.
+ort = { version = "2.0.0-rc.12", optional = true }
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
+# LLVM/clang 이 설치된 환경에서 활성화: cargo build --features full
+full = ["whisper-rs", "ort"]
+# GPU 백엔드 변형
+# Vulkan: 크로스벤더(NVIDIA/AMD/Intel) — Windows/Linux, Vulkan SDK 설치 필요
+full-vulkan = ["full", "whisper-rs/vulkan"]
+# CUDA: NVIDIA 전용 — CUDA Toolkit 설치 필요
+full-cuda = ["full", "whisper-rs/cuda"]
+# Metal: macOS 전용 — 추가 SDK 불필요
+full-metal = ["full", "whisper-rs/metal"]
+
+[dev-dependencies]
+# 통합 테스트에서 #[tokio::test] 사용
+tokio = { version = "1", features = ["full", "macros", "rt-multi-thread"] }
+serde_json = "1"

@@ -1,19 +1,27 @@
+# Node.js / 프론트엔드
 node_modules
-out
 dist
-dist-electron
-release
 *.log
+
+# Tauri / Rust 빌드 아티팩트
+src-tauri/target/
+src-tauri/gen/
+
+# 모델 파일 (userData 경로에 저장, 리포 포함 불가)
+/models/
+
+# 환경 / 시스템
 .DS_Store
 .env
 .env.*
 !.env.example
-# 다운로드 모델 캐시는 userData(리포 밖)에 저장된다. 루트의 우발적 models/ 폴더만
-# 무시하고, 소스 디렉터리 src/main/models/ 는 추적해야 한다(과거 광범위 'models' 패턴 버그).
-/models/
-.scratch
-*.tsbuildinfo
-assets/logo/logo.*~lock~
-*.*~lock~
+
+# Claude Code / Codex
 .claude/
 .codex/
+
+# 기타
+.scratch
+assets/logo/logo.*~lock~
+*.*~lock~
+target/

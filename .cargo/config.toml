@@ -1,0 +1,41 @@
+[build]
+target-dir = "C:\\cx-t"
+
+# ── Cargo 별칭 ──────────────────────────────────────────────────────────────
+# `cargo t` — dev 서버 실행 중에도 안전한 테스트 명령.
+# `cargo test`(기본)는 captionx.exe 를 재링크하려다 실행 중인 dev 서버가 파일을
+# 잡고 있어 "os error 32" 로 실패한다.
+# --lib  : 유닛 테스트(src/**/*.rs 내 #[cfg(test)])만 빌드 — captionx.exe 링크 없음
+# --tests: 통합 테스트(tests/*.rs) 빌드 — 별도 바이너리라 exe 잠금과 무관
+[alias]
+t = "test --lib --tests"
+
+# ── Windows MSVC 링커 설정 ────────────────────────────────────────────────
+# GGML 은 CreateThread(NULL, 0, ...) 로 워커 스레드를 생성한다.
+# size=0 이면 Windows 는 PE 헤더의 SizeOfStackReserve 를 기본 스택으로 사용한다.
+# 기본값 1MB 에서 GGML decode 측정 패스가 STATUS_STACK_BUFFER_OVERRUN 을 유발.
+# /STACK:67108864 (64MB) 로 늘리면 GGML 워커 스레드를 포함한 모든 스레드에 적용.
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "link-arg=/STACK:67108864"]
+
+# ── 빌드 환경 변수 ─────────────────────────────────────────────────────────
+[env]
+# whisper.cpp CMake: VS 2022 제너레이터 명시 (VS 2026 오탐 방지)
+CMAKE_GENERATOR = "Visual Studio 17 2022"
+CMAKE_GENERATOR_PLATFORM = "x64"
+
+# LIBCLANG_PATH: LLVM winget 기본 설치 경로 (8.3 단축 경로)
+LIBCLANG_PATH = "C:\\PROGRA~1\\LLVM\\bin"
+
+# VULKAN_SDK: obs-studio dependencies 내 Vulkan SDK 사용
+VULKAN_SDK = "C:\\VulkanSDK\\1.4.350.0"
+
+# BINDGEN_EXTRA_CLANG_ARGS: 버전-특정 헤더 경로
+# CI 신규 환경에서는 scripts/setup-build-env.ps1 로 자동 설정한다.
+BINDGEN_EXTRA_CLANG_ARGS = "-IC:/PROGRA~1/LLVM/lib/clang/22/include -IC:/PROGRA~2/MICROS~2/2022/BUILDT~1/VC/Tools/MSVC/1444~1.352/include -IC:/PROGRA~2/WI3CF2~1/10/Include/100261~1.0/ucrt"
+
+# whisper-rs-sys build.rs 는 debug_assertions=true 시 CMake_BUILD_TYPE=RelWithDebInfo +
+# cxxflag("-DWHISPER_DEBUG") 를 설정한다. env 루프가 나중에 처리되므로 덮어쓴다.
+# Release 모드 + WHISPER_DEBUG 제거로 불필요한 코드패스를 차단한다.
+CMAKE_BUILD_TYPE = "Release"
+CMAKE_CXX_FLAGS = "/utf-8"

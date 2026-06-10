@@ -1,0 +1,23 @@
+{
+  "identifier": "default",
+  "description": "CaptionX 기본 권한",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "dialog:default",
+    "dialog:allow-open",
+    "dialog:allow-save",
+    "shell:allow-open",
+    "fs:default",
+    "fs:allow-read-file",
+    "fs:allow-write-file",
+    "fs:allow-read-dir",
+    "fs:allow-mkdir",
+    "fs:allow-remove",
+    "fs:allow-exists",
+    "fs:allow-stat",
+    "fs:scope-appdata-recursive",
+    "fs:scope-download-recursive",
+    "fs:scope-document-recursive"
+  ]
+}

@@ -1,18 +1,25 @@
 {
-  "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
-  "include": [
-    "src/renderer/src/**/*",
-    "src/renderer/src/**/*.tsx",
-    "src/preload/*.d.ts",
-    "shared/**/*"
-  ],
   "compilerOptions": {
     "composite": true,
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
     "jsx": "react-jsx",
-    "baseUrl": ".",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@renderer/*": ["src/renderer/src/*"],
-      "@shared/*": ["shared/*"]
+      "@/*": ["./src/*"],
+      "@shared/*": ["./shared/*"]
     }
-  }
+  },
+  "include": ["src", "shared"]
 }

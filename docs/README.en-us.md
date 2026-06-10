@@ -2,9 +2,9 @@
 
 # 🎬 CaptionX
 
-**Desktop Subtitle Transcription App for General Users**
+**Desktop Subtitle Transcription App (Whisper Transcription + wav2vec2 Word-Level Forced Alignment)**
 
-[![React](https://img.shields.io/badge/React-v19.0.0-fed7aa?style=flat-square&logo=react&labelColor=d8b4fe&logoColor=black)](https://react.dev) [![Electron](https://img.shields.io/badge/Electron-v42.3.3-bae6fd?style=flat-square&logo=electron&labelColor=fed7aa&logoColor=black)](https://www.electronjs.org) [![TypeScript](https://img.shields.io/badge/TypeScript-v5.7.3-e9d5ff?style=flat-square&logo=typescript&labelColor=bae6fd&logoColor=black)](https://www.typescriptlang.org) [![Vite](https://img.shields.io/badge/Vite-v6.0.0-ffedd5?style=flat-square&logo=vite&labelColor=e9d5ff&logoColor=black)](https://vite.dev) [![Biome](https://img.shields.io/badge/Biome-v2.4.16-f3e8ff?style=flat-square&logo=biome&labelColor=bae6fd&logoColor=black)](https://biomejs.dev) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-fed7aa?style=flat-square&labelColor=d8b4fe)](../LICENSE)
+[![React](https://img.shields.io/badge/React-v19.0.0-fed7aa?style=flat-square&logo=react&labelColor=d8b4fe&logoColor=black)](https://react.dev) [![Tauri](https://img.shields.io/badge/Tauri-v2-bae6fd?style=flat-square&logo=tauri&labelColor=fed7aa&logoColor=black)](https://tauri.app) [![Rust](https://img.shields.io/badge/Rust-Backend-e9d5ff?style=flat-square&logo=rust&labelColor=bae6fd&logoColor=black)](https://www.rust-lang.org) [![TypeScript](https://img.shields.io/badge/TypeScript-v5.7.3-bae6fd?style=flat-square&logo=typescript&labelColor=e9d5ff&logoColor=black)](https://www.typescriptlang.org) [![Vite](https://img.shields.io/badge/Vite-v6-ffedd5?style=flat-square&logo=vite&labelColor=d8b4fe&logoColor=black)](https://vite.dev) [![Biome](https://img.shields.io/badge/Biome-v2-f3e8ff?style=flat-square&logo=biome&labelColor=bae6fd&logoColor=black)](https://biomejs.dev) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-fed7aa?style=flat-square&labelColor=d8b4fe)](../LICENSE)
 
 [한국어](../README.md) | [日本語](README.ja-jp.md) | [简体中文](README.zh-hans.md) | [繁體中文](README.zh-hant.md)
 
@@ -14,12 +14,20 @@
 
 ## ✨ Features
 
-Whisper speech-to-text (STT) transcription followed by wav2vec2 forced alignment to generate **word-level timestamps**
+Whisper speech-to-text (STT) transcription followed by wav2vec2 or MMS forced alignment to generate **word-level timestamps**. No Python or separate runtime required.
 
-1. **Noise & Music Removal (Denoising)** — Removes background noise and music via the GTCRN model to enhance voice clarity (optional).
-2. **Transcription** — Generates sentence-level subtitles using Whisper (whisper.cpp).
-3. **Word Alignment** — Uses wav2vec2 CTC + Viterbi forced alignment to generate **precise start/end timestamps for each word**.
-4. **Export** — Exports to SRT, VTT (with inline word timestamps), or JSON.
+1. **Noise & Music Removal (Denoising)** — Enhances voice clarity by removing background noise/music via the GTCRN model (optional).
+2. **Transcription** — Generates sentence-level subtitles using Whisper (whisper-rs / whisper.cpp).
+3. **Word Alignment** — Uses wav2vec2 CTC + Viterbi forced alignment or MMS (Massively Multilingual Speech) to generate **precise start/end timestamps for each word**.
+4. **Export** — SRT, VTT (with inline word timestamps), JSON.
+
+Additional Features:
+- **VAD** — Voice Activity Detection to skip silent parts (optional).
+- **Hotwords** — Improve recognition for common words or proper nouns.
+- **Multi-track** — Select audio tracks from video files with multiple tracks.
+- **Media Player** — Review transcription results with audio waveform visualization.
+- **Segment Resplit** — Adjust subtitle intervals based on character count.
+- **Library** — Save and reuse transcription history.
 
 ## 🖼️ Screenshots
 
@@ -33,121 +41,134 @@ Whisper speech-to-text (STT) transcription followed by wav2vec2 forced alignment
 
 ## 🚀 Getting Started
 
+### Using Release Binary (Recommended)
+
+Download the installer for your platform from [GitHub Releases](https://github.com/samchiball/captionX/releases).
+
+### Build from Source
+
+**Prerequisites**: Rust, Node.js, LLVM/Clang
+
 ```bash
-npm install        # Install dependencies
-npm run dev        # Run in development mode
-npm run build      # Build production bundle
-npm run pack:win   # Windows Installer (.exe) — Same for pack:mac / pack:linux
+npm install              # Install JS dependencies
+cargo build --manifest-path src-tauri/Cargo.toml --features full
+                         # Build Rust backend (takes time on first run)
+npm run dev              # Dev mode (tauri dev)
+npm run build            # Production bundle + installer (tauri build)
 ```
 
-### 🌐 Supported Languages for Word Alignment (24)
+> **`--features full`** flag requires LLVM/Clang. Building without it will run the UI but disable transcription functionality.
 
-| Category                        | Languages                                                                                                                                                                         |
-| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Dedicated Models** (12)       | English `en` · Korean `ko` · Japanese `ja` · Chinese `zh` · Spanish `es` · French `fr` · German `de` · Italian `it` · Portuguese `pt` · Russian `ru` · Turkish `tr` · Polish `pl` |
-| **Multilingual-56 Shared** (12) | Dutch `nl` · Ukrainian `uk` · Czech `cs` · Greek `el` · Hungarian `hu` · Finnish `fi` · Romanian `ro` · Arabic `ar` · Hindi `hi` · Indonesian `id` · Thai `th` · Vietnamese `vi`  |
+### 🌐 Supported Languages for Word Alignment (30)
 
-> **Dedicated Models** are language-specific wav2vec2-XLSR fine-tuned models. **Multilingual-56 Shared Models** utilize a single model trained on 56 languages (`voidful/wav2vec2-xlsr-multilingual-56`), shared among 12 languages to download only once. If the language is set to `Auto`, the alignment language is inferred from the transcribed characters (Korean, Kana, Han, Cyrillic, Devanagari, Thai, Greek, Arabic).
+| Alignment Mode | Languages |
+| -------------- | --------- |
+| **wav2vec2 Dedicated** (12) | English `en` · Korean `ko` · Japanese `ja` · Chinese `zh` · Spanish `es` · French `fr` · German `de` · Italian `it` · Portuguese `pt` · Russian `ru` · Turkish `tr` · Polish `pl` |
+| **wav2vec2 Multilingual-56** (12) | Dutch `nl` · Ukrainian `uk` · Czech `cs` · Greek `el` · Hungarian `hu` · Finnish `fi` · Romanian `ro` · Arabic `ar` · Hindi `hi` · Indonesian `id` · Thai `th` · Vietnamese `vi` |
+| **MMS (Meta Multilingual)** (+6) | Swedish `sv` · Hebrew `he` · Norwegian `no` · Danish `da` · Bengali `bn` · Urdu `ur` |
+
+> - **wav2vec2 Dedicated**: Fine-tuned wav2vec2-XLSR models per language.
+> - **wav2vec2 Multilingual-56**: A single 56-language model (`voidful/wav2vec2-xlsr-multilingual-56`) shared across 12 languages.
+> - **MMS Mode**: Meta's 1,000+ language MMS model (switchable in settings).
+> - If set to `Auto`, the alignment language is inferred from transcribed script (Hangul, Kana, Hanzi, Cyrillic, etc.).
 
 ## 💻 Supported OS
 
-- **Windows**: Supported (x64)
-- **Linux**: Supported (x64)
-- **macOS**: Build compatible but unverified (not fully tested on physical devices)
+- **Windows**: Supported (x64) — NSIS Installer (`.exe`)
+- **Linux**: Supported (x64) — AppImage. Requires execution permission.
+
+  ```bash
+  chmod +x CaptionX-*.AppImage && ./CaptionX-*.AppImage
+  ```
+
+- **macOS**: Build compatible but unverified. If Gatekeeper blocks it, remove the quarantine attribute.
+
+  ```bash
+  xattr -dr com.apple.quarantine /Applications/CaptionX.app
+  ```
 
 ## 🧱 Architecture
 
 ```mermaid
 flowchart LR
-    subgraph UI ["React UI (Renderer Process)"]
+    subgraph UI ["React UI (WebView)"]
         direction TB
-        UI_A["DragZone / Progress / View"]
+        UI_A["DropZone / Progress / Media Player / View"]
     end
 
-    subgraph Main ["Electron Main Process"]
+    subgraph Backend ["Tauri Rust Backend"]
         direction TB
-        Main_B["ffmpeg-static<br/>(16kHz mono PCM Extraction)"]
-        Main_C["whisper-node-addon<br/>(Whisper Transcription - GPU)"]
-        Main_D["onnxruntime-node<br/>(wav2vec2 CTC emission - GPU)"]
-        Main_E["viterbi.ts<br/>(Word Forced Alignment)"]
-        Main_F["Subtitle Serialization<br/>(SRT / VTT / JSON)"]
+        B_A["ffmpeg-sidecar<br/>(Audio Extraction / Waveform)"]
+        B_B["whisper-rs<br/>(Whisper.cpp Transcription - GPU)"]
+        B_C["ort<br/>(wav2vec2/MMS CTC emission - GPU)"]
+        B_D["Viterbi (Rust)<br/>(Word-level Forced Alignment)"]
+        B_E["Subtitle Serialization & Export<br/>(SRT / VTT / JSON)"]
 
-        Main_B --> Main_C --> Main_D --> Main_E --> Main_F
+        B_A --> B_B --> B_C --> B_D --> B_E
     end
 
-    UI_A -- "IPC" --> Main_B
+    UI_A -- "Tauri invoke" --> B_A
 ```
 
 | Area           | Technology                                                                                     |
 | -------------- | ---------------------------------------------------------------------------------------------- |
-| Window Manager | Electron + electron-vite                                                                       |
+| Shell          | Tauri 2 + Vite                                                                                 |
 | UI             | React 19 + TypeScript                                                                          |
-| Transcription  | [whisper.cpp](https://github.com/ggml-org/whisper.cpp) (@kutalia/whisper-node-addon, prebuilt) |
-| Word Alignment | wav2vec2 CTC (onnxruntime-node) + custom Viterbi implementation                                |
-| Decoding       | ffmpeg-static                                                                                  |
+| Transcription  | [whisper.cpp](https://github.com/ggml-org/whisper.cpp) (whisper-rs, Rust native bindings)     |
+| Word Alignment | wav2vec2 CTC (ort / ONNX Runtime) + MMS + custom Viterbi implementation (Rust)                 |
+| Decoding       | ffmpeg-sidecar (bundled ffmpeg)                                                                |
 | GPU            | whisper.cpp (CUDA/Metal/Vulkan) · ONNX EP (DirectML/CUDA/CoreML)                               |
 
 ## 🧪 Code Quality
 
 ```bash
-npm run check   # Runs lint + format:check + typecheck + deadcode + test
+npm run typecheck   # tsc type check
+npm run lint        # Biome lint
+npm run fix         # Biome lint + format auto-fix
+npm run test        # vitest
 ```
-
-| Command                | Tool                         |
-| ---------------------- | ---------------------------- |
-| `npm run lint`         | Biome lint                   |
-| `npm run format`       | Biome format                 |
-| `npm run format:check` | Biome format check           |
-| `npm run typecheck`    | tsc (separated node/web)     |
-| `npm run deadcode`     | knip                         |
-| `npm run test`         | vitest                       |
-| `npm run check`        | Biome + tsc + knip + vitest |
 
 ## 📁 Project Structure
 
 ```
-src/main      Main process (ASR/Align/Decode/Export pipeline)
-src/preload   preload API via contextBridge
-src/renderer  React UI
-shared        Shared types between main and renderer
+src                React UI + Hooks + Utils (WebView Renderer)
+src-tauri/src      Rust Backend (Tauri commands / Pipeline)
+  ├── audio/       ffmpeg audio extraction & waveform
+  ├── commands/    Tauri invoke handlers
+  ├── edit/        Segment resplitting
+  ├── export/      SRT/VTT/JSON serialization
+  ├── history/     Transcription history store
+  └── types.rs     Shared type definitions
 ```
 
 ## 🔄 Changelog
 
-### Alignment & Performance Improvements
+### v0.2.0 — Electron → Tauri 2 Migration
 
-- **Removed whisper.cpp Built-in Forced Alignment** — Removed the internal word-level alignment mode of `whisper` that transcribed the entire audio once more just to get word timestamps.
-  - **CJK Character Corruption**: whisper.cpp's token-level (`max_len=1`) output split multi-byte Korean, Japanese, and Chinese characters at the byte boundaries, corrupting about 34% of the tokens (`U+FFFD`).
-  - **Low Accuracy**: The corrupted segments eventually fell back to uniform distribution, which discarded results in about 76% of segments for Korean.
-  - **Slow (Double Pass)**: Performing transcription twice made the alignment stage unnecessarily slow.
-  - Now, word alignment is unified under **wav2vec2**, and languages without supported models fall back to **approximate word alignment** by uniformly distributing segment text (no additional transcription).
-- **GTCRN Speech Enhancement ~8x Acceleration** — Replaced the streaming (frame-based) model with an offline model, processing with a single inference per chunk.
-- **Word-to-Segment Batch Linearization** — Optimized the alignment result mapping from O(Segments × Words) to O(Segments + Words).
-
-## 🗺️ Roadmap
-
-- [x] whisper.cpp prebuilt bindings integration & E2E transcription verification
-- [x] Whisper / wav2vec2 automated model download manager
-- [x] Alignment models for non-English languages (Korean + 24 languages)
-- [x] Task Cancellation / Batch Processing
-- [ ] Speaker Diarization
+- **Switch to Rust Backend** — Replaced Node.js/Electron main process with Tauri 2 + Rust.
+  - whisper-node-addon (prebuilt Node.js) → whisper-rs (Rust native bindings)
+  - onnxruntime-node → ort (Rust ONNX Runtime bindings)
+  - contextBridge IPC → Tauri invoke commands
+- **Added MMS Alignment Mode** — Switchable to Meta MMS model, extending supported languages from 24 to 30.
+- **VAD Support** — Added Voice Activity Detection option.
+- **Hotwords** — Register common words/proper nouns to improve accuracy.
+- **Media Player** — Review results with audio waveform visualization.
+- **Concurrency Control** — Directly configure queue concurrency and whisper.cpp inference threads.
 
 ## ✉️ Contributing, Feedback & Bug Reports
 
-CaptionX is an open-source project, and contributions are welcome! Bug fixes, feature suggestions, and translation additions are all highly appreciated.
+CaptionX is an open-source project, and contributions are welcome!
 
-For questions, feature requests, or bug reports, please use the options below:
-
-- **GitHub Issues**: Open a new issue to report bugs or suggest enhancements.
+- **GitHub Issues**: Report bugs or suggest enhancements.
 - **Pull Requests**: Submit direct fixes or improvements.
 
 ## 📚 References
 
-- **[whisperX](https://github.com/m-bain/whisperX)**: A key inspiration for combining Whisper and wav2vec2 forced alignment to achieve precise word-level timestamps.
-- **[whisper.cpp](https://github.com/ggml-org/whisper.cpp)**: High-performance C/C++ inference engine for Whisper, serving as the basis for ASR.
-- **[onnxruntime](https://github.com/microsoft/onnxruntime)**: High-performance inference engine used to run the wav2vec2 model on CPU/GPU.
-- **[GTCRN](https://github.com/545907361/GTCRN)**: Lightweight speech enhancement model utilized for background noise and music removal (denoising).
-- **[wav2vec 2.0](https://arxiv.org/abs/2006.11477)**: Self-supervised speech representation learning framework used for CTC emissions and forced alignment.
+- **[whisperX](https://github.com/m-bain/whisperX)**: Key inspiration for the Whisper + wav2vec2 forced alignment pipeline.
+- **[whisper.cpp](https://github.com/ggml-org/whisper.cpp)**: High-performance C/C++ inference engine for Whisper.
+- **[onnxruntime](https://github.com/microsoft/onnxruntime)**: Engine for running wav2vec2 and MMS models on CPU/GPU.
+- **[GTCRN](https://github.com/545907361/GTCRN)**: Lightweight speech enhancement model for denoising.
+- **[wav2vec 2.0](https://arxiv.org/abs/2006.11477)**: Framework for speech representation and CTC emissions.
 
 ## 📄 License
 

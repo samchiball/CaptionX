@@ -9,13 +9,14 @@
     "ignoreUnknown": true,
     "includes": [
       "**",
-      "!**/out",
       "!**/dist",
-      "!**/release",
       "!**/node_modules",
+      "!src-tauri/target",
+      "!target",
       "!**/models",
       "!**/*.d.ts",
-      "!**/package-lock.json"
+      "!**/package-lock.json",
+      "!LEGACY"
     ]
   },
   "formatter": {

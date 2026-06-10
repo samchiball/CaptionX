@@ -108,12 +108,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-latest # win x64 → nsis
-            pack: pack:win
-          - os: macos-14 # Apple Silicon (arm64) → dmg
-            pack: pack:mac
-          - os: ubuntu-latest # linux x64 → AppImage
-            pack: pack:linux
+          - os: windows-latest
+            pack: build:win
+          - os: macos-14
+            pack: build:mac
+          - os: ubuntu-latest
+            pack: build:linux
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
@@ -124,7 +124,6 @@ jobs:
       - run: npm ci
 
       # 릴리즈이고 인증서 시크릿이 있을 때만 서명 변수를 주입한다.
-      # (빈 CSC_LINK 를 넘기면 electron-builder 가 경로로 오인해 빌드가 깨진다.)
       - name: Configure code signing
         shell: bash
         run: |

@@ -1,0 +1,52 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "CaptionX",
+  "version": "0.2.0",
+  "identifier": "CaptionX",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:15120",
+    "beforeDevCommand": "npm run vite:dev",
+    "beforeBuildCommand": "npm run vite:build"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "CaptionX",
+        "width": 1100,
+        "height": 760,
+        "minWidth": 860,
+        "minHeight": 600,
+        "decorations": true,
+        "resizable": true,
+        "dragDropEnabled": true
+      }
+    ],
+    "security": {
+      "csp": null,
+      "assetProtocol": {
+        "enable": true,
+        "scope": ["**"]
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "",
+      "endpoints": [
+        "https://github.com/samchiball/captionX/releases/latest/download/latest.json"
+      ]
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "../resources/icon.png",
+      "../build/icon.ico"
+    ],
+    "resources": {
+      "../resources/gtcrn_offline.onnx": "resources/gtcrn_offline.onnx"
+    }
+  }
+}
